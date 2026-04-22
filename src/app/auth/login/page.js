@@ -1,20 +1,57 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Lock, Mail, Phone, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 export default function LoginPage() {
-  const { login, isAuthenticated } = useAuth();
+  const { login, googleSignIn, isAuthenticated } = useAuth();
   const router = useRouter();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
+  const googleBtnRef = useRef(null);
+  const googleCallbackRef = useRef(null);
 
   if (isAuthenticated) { router.push('/'); return null; }
+
+  googleCallbackRef.current = async (response) => {
+    setError('');
+    setGoogleLoading(true);
+    const result = await googleSignIn(response.credential);
+    setGoogleLoading(false);
+    if (result.success) router.push(result.user.role === 'admin' ? '/admin' : '/');
+    else setError(result.error);
+  };
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (!clientId) return;
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      if (!window.google || !googleBtnRef.current) return;
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: (r) => googleCallbackRef.current(r),
+      });
+      window.google.accounts.id.renderButton(googleBtnRef.current, {
+        theme: 'outline',
+        size: 'large',
+        text: 'signin_with',
+        width: googleBtnRef.current.offsetWidth || 400,
+      });
+    };
+    document.head.appendChild(script);
+    return () => { if (document.head.contains(script)) document.head.removeChild(script); };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,10 +67,11 @@ export default function LoginPage() {
     }
   };
 
+  const hasGoogleClientId = !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+
   return (
     <div className="min-h-[calc(100vh-180px)] flex items-center justify-center bg-daami-cream px-4 py-16">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex flex-col items-center">
             <span className="text-3xl font-bold tracking-[0.2em] text-daami-black uppercase">DAAMI</span>
@@ -44,17 +82,28 @@ export default function LoginPage() {
         </div>
 
         <div className="bg-white p-8 shadow-sm">
-          {/* Demo Credentials */}
-          <div className="bg-daami-cream border border-daami-gold/30 p-3 mb-6 text-xs text-daami-dark-gray">
-            <p className="font-semibold text-daami-gold mb-1">Demo Credentials:</p>
-            <p>Admin: <code className="bg-white px-1">admin@daami.com</code> / <code className="bg-white px-1">admin123</code></p>
-            <p className="mt-0.5">Customer: <code className="bg-white px-1">customer@daami.com</code> / <code className="bg-white px-1">demo123</code></p>
-          </div>
-
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 mb-5">
               {error}
             </div>
+          )}
+
+          {/* Google Sign-In */}
+          {hasGoogleClientId && (
+            <>
+              <div ref={googleBtnRef} className="w-full flex justify-center mb-4" />
+              {googleLoading && (
+                <div className="flex items-center justify-center gap-2 text-sm text-daami-gray mb-4">
+                  <span className="w-4 h-4 border-2 border-daami-gold border-t-transparent rounded-full animate-spin" />
+                  Signing in with Google...
+                </div>
+              )}
+              <div className="flex items-center gap-3 mb-5">
+                <div className="flex-1 h-px bg-gray-200" />
+                <span className="text-xs text-daami-gray font-medium">OR</span>
+                <div className="flex-1 h-px bg-gray-200" />
+              </div>
+            </>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -68,7 +117,7 @@ export default function LoginPage() {
                   type="text"
                   value={identifier}
                   onChange={e => setIdentifier(e.target.value)}
-                  placeholder="admin@daami.com or 9800000000"
+                  placeholder="you@example.com or 9800000000"
                   className="input-field pl-10"
                   autoComplete="username"
                 />
@@ -77,7 +126,6 @@ export default function LoginPage() {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="label-field mb-0">Password</label>
-                <Link href="#" className="text-xs text-daami-gold hover:text-daami-gold-dark">Forgot password?</Link>
               </div>
               <div className="relative">
                 <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-daami-gray" />

@@ -63,6 +63,26 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const googleSignIn = async (credential) => {
+    try {
+      const res = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential }),
+      });
+      const data = await res.json();
+      if (!res.ok) return { success: false, error: data.error || 'Google sign-in failed' };
+      setUser(data.user);
+      setToken(data.token);
+      localStorage.setItem('daami_token', data.token);
+      localStorage.setItem('daami_user', JSON.stringify(data.user));
+      toast.success(`Welcome, ${data.user.name}!`);
+      return { success: true, user: data.user };
+    } catch {
+      return { success: false, error: 'Network error. Please try again.' };
+    }
+  };
+
   const logout = () => {
     setUser(null);
     setToken(null);
@@ -82,7 +102,7 @@ export function AuthProvider({ children }) {
   const isAuthenticated = !!user;
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, isAuthenticated, isAdmin, login, register, logout, authFetch }}>
+    <AuthContext.Provider value={{ user, token, loading, isAuthenticated, isAdmin, login, register, googleSignIn, logout, authFetch }}>
       {children}
     </AuthContext.Provider>
   );

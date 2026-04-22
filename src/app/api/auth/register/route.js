@@ -7,18 +7,19 @@ export async function POST(request) {
   try {
     const { name, email, phone, password } = await request.json();
 
-    if (!name || !email || !password)
-      return NextResponse.json({ error: 'Name, email and password are required' }, { status: 400 });
+    if (!name || !password || (!email && !phone))
+      return NextResponse.json({ error: 'Name, password and either email or phone are required' }, { status: 400 });
 
-    const exists = await prisma.user.findFirst({
-      where: { OR: [{ email }, ...(phone ? [{ phone }] : [])] },
-    });
+    const orClauses = [];
+    if (email) orClauses.push({ email });
+    if (phone) orClauses.push({ phone });
+    const exists = await prisma.user.findFirst({ where: { OR: orClauses } });
     if (exists)
       return NextResponse.json({ error: 'Account with this email or phone already exists' }, { status: 409 });
 
     const hashed = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
-      data: { name, email, phone: phone || null, password: hashed, role: 'customer' },
+      data: { name, email: email || null, phone: phone || null, password: hashed, role: 'customer' },
     });
 
     const token = signToken({ id: user.id, email: user.email, role: user.role, name: user.name });

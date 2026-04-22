@@ -1,17 +1,21 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Lock, Mail, Phone, User, ArrowRight, Check } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 export default function RegisterPage() {
-  const { register, isAuthenticated } = useAuth();
+  const { register, googleSignIn, isAuthenticated } = useAuth();
   const router = useRouter();
+  const [tab, setTab] = useState('email'); // 'email' | 'phone'
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirm: '' });
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
+  const googleBtnRef = useRef(null);
+  const googleCallbackRef = useRef(null);
 
   if (isAuthenticated) { router.push('/'); return null; }
 
@@ -30,23 +34,66 @@ export default function RegisterPage() {
   const strengthLabel = ['', 'Weak', 'Fair', 'Good', 'Strong'][strength];
   const strengthColor = ['', 'bg-red-400', 'bg-yellow-400', 'bg-blue-400', 'bg-green-400'][strength];
 
+  googleCallbackRef.current = async (response) => {
+    setError('');
+    setGoogleLoading(true);
+    const result = await googleSignIn(response.credential);
+    setGoogleLoading(false);
+    if (result.success) router.push('/');
+    else setError(result.error);
+  };
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (!clientId) return;
+
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      if (!window.google || !googleBtnRef.current) return;
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: (r) => googleCallbackRef.current(r),
+      });
+      window.google.accounts.id.renderButton(googleBtnRef.current, {
+        theme: 'outline',
+        size: 'large',
+        text: 'signup_with',
+        width: googleBtnRef.current.offsetWidth || 400,
+      });
+    };
+    document.head.appendChild(script);
+    return () => { if (document.head.contains(script)) document.head.removeChild(script); };
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!form.name || !form.email || !form.phone || !form.password) {
-      setError('All fields are required'); return;
+    if (!form.name || !form.password) { setError('Name and password are required'); return; }
+    if (tab === 'email') {
+      if (!form.email) { setError('Email address is required'); return; }
+      if (!/^\S+@\S+\.\S+$/.test(form.email)) { setError('Enter a valid email address'); return; }
     }
-    if (!/^\S+@\S+\.\S+$/.test(form.email)) { setError('Enter a valid email address'); return; }
-    if (!/^[0-9]{10}$/.test(form.phone)) { setError('Enter a valid 10-digit phone number'); return; }
+    if (tab === 'phone') {
+      if (!form.phone) { setError('Phone number is required'); return; }
+      if (!/^[0-9]{10}$/.test(form.phone)) { setError('Enter a valid 10-digit phone number'); return; }
+    }
     if (form.password.length < 6) { setError('Password must be at least 6 characters'); return; }
     if (form.password !== form.confirm) { setError('Passwords do not match'); return; }
 
     setLoading(true);
-    const result = await register(form.name, form.email, form.phone, form.password);
+    const email = tab === 'email' ? form.email : '';
+    const phone = tab === 'phone' ? form.phone : form.phone;
+    const result = await register(form.name, email, phone, form.password);
     setLoading(false);
     if (result.success) router.push('/');
     else setError(result.error);
   };
+
+  const hasGoogleClientId = !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
   return (
     <div className="min-h-[calc(100vh-180px)] flex items-center justify-center bg-daami-cream px-4 py-16">
@@ -65,6 +112,46 @@ export default function RegisterPage() {
             <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 mb-5">{error}</div>
           )}
 
+          {/* Google Sign-In */}
+          {hasGoogleClientId && (
+            <>
+              <div ref={googleBtnRef} className="w-full flex justify-center mb-4" />
+              {googleLoading && (
+                <div className="flex items-center justify-center gap-2 text-sm text-daami-gray mb-4">
+                  <span className="w-4 h-4 border-2 border-daami-gold border-t-transparent rounded-full animate-spin" />
+                  Signing in with Google...
+                </div>
+              )}
+              <div className="flex items-center gap-3 mb-5">
+                <div className="flex-1 h-px bg-gray-200" />
+                <span className="text-xs text-daami-gray font-medium">OR</span>
+                <div className="flex-1 h-px bg-gray-200" />
+              </div>
+            </>
+          )}
+
+          {/* Email / Phone Tabs */}
+          <div className="flex border border-gray-200 mb-5">
+            <button
+              type="button"
+              onClick={() => { setTab('email'); setError(''); }}
+              className={`flex-1 py-2.5 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
+                tab === 'email' ? 'bg-daami-black text-white' : 'text-daami-gray hover:text-daami-black'
+              }`}
+            >
+              <Mail size={14} /> Email
+            </button>
+            <button
+              type="button"
+              onClick={() => { setTab('phone'); setError(''); }}
+              className={`flex-1 py-2.5 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
+                tab === 'phone' ? 'bg-daami-black text-white' : 'text-daami-gray hover:text-daami-black'
+              }`}
+            >
+              <Phone size={14} /> Phone
+            </button>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="label-field">Full Name</label>
@@ -73,20 +160,25 @@ export default function RegisterPage() {
                 <input name="name" value={form.name} onChange={handleChange} placeholder="Your full name" className="input-field pl-10" />
               </div>
             </div>
-            <div>
-              <label className="label-field">Email Address</label>
-              <div className="relative">
-                <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-daami-gray" />
-                <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="you@example.com" className="input-field pl-10" />
+
+            {tab === 'email' ? (
+              <div>
+                <label className="label-field">Email Address</label>
+                <div className="relative">
+                  <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-daami-gray" />
+                  <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="you@example.com" className="input-field pl-10" />
+                </div>
               </div>
-            </div>
-            <div>
-              <label className="label-field">Phone Number</label>
-              <div className="relative">
-                <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-daami-gray" />
-                <input name="phone" type="tel" value={form.phone} onChange={handleChange} placeholder="9800000000" maxLength={10} className="input-field pl-10" />
+            ) : (
+              <div>
+                <label className="label-field">Phone Number</label>
+                <div className="relative">
+                  <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-daami-gray" />
+                  <input name="phone" type="tel" value={form.phone} onChange={handleChange} placeholder="9800000000" maxLength={10} className="input-field pl-10" />
+                </div>
               </div>
-            </div>
+            )}
+
             <div>
               <label className="label-field">Password</label>
               <div className="relative">
@@ -108,6 +200,7 @@ export default function RegisterPage() {
                 </div>
               )}
             </div>
+
             <div>
               <label className="label-field">Confirm Password</label>
               <div className="relative">
