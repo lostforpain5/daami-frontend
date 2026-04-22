@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { put } from '@vercel/blob';
 
 export async function POST(request) {
   try {
@@ -13,15 +12,10 @@ export async function POST(request) {
     if (!allowed.includes(ext))
       return NextResponse.json({ error: 'Only image files allowed' }, { status: 400 });
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const filename = `screenshots/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const blob = await put(filename, file, { access: 'public' });
 
-    const filename = `screenshot-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'screenshots');
-    await mkdir(uploadDir, { recursive: true });
-    await writeFile(path.join(uploadDir, filename), buffer);
-
-    return NextResponse.json({ url: `/uploads/screenshots/${filename}` });
+    return NextResponse.json({ url: blob.url });
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
