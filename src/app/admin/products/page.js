@@ -144,7 +144,8 @@ export default function AdminProductsPage() {
   };
 
   const handleSave = async () => {
-    if (!form.name || !form.price || !form.category) { toast.error('Name, price and category are required'); return; }
+    if (!form.name || !form.price) { toast.error('Product name and price are required'); return; }
+    if (!form.category) { toast.error('Please select a category. Go to Categories tab first to add one.'); return; }
     setSaving(true);
     try {
       const payload = {
@@ -163,12 +164,13 @@ export default function AdminProductsPage() {
       const res = editingId
         ? await authFetch(`/api/products/${editingId}`, { method: 'PUT', body: JSON.stringify(payload) })
         : await authFetch('/api/products', { method: 'POST', body: JSON.stringify(payload) });
+      if (res.status === 403) { toast.error('Session expired — please log out and log back in'); return; }
       if (!res.ok) { const err = await res.json(); toast.error(err.error || 'Save failed'); return; }
       toast.success(editingId ? 'Product updated!' : 'Product added!');
       setModalOpen(false);
       fetchProducts();
     } catch {
-      toast.error('Network error');
+      toast.error('Network error — check your connection');
     } finally {
       setSaving(false);
     }
@@ -321,13 +323,13 @@ export default function AdminProductsPage() {
       {/* Add / Edit Modal */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setModalOpen(false)}>
-          <div className="bg-white w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-6 border-b border-gray-100 sticky top-0 bg-white z-10">
+          <div className="bg-white w-full max-w-2xl flex flex-col max-h-[90vh] shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-6 border-b border-gray-100 shrink-0">
               <h2 className="text-lg font-bold text-daami-black">{editingId ? 'Edit Product' : 'Add New Product'}</h2>
               <button onClick={() => setModalOpen(false)} className="text-daami-gray hover:text-daami-black"><X size={20} /></button>
             </div>
 
-            <div className="p-6 space-y-5">
+            <div className="p-6 space-y-5 overflow-y-auto flex-1">
               {/* Basic Info */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
@@ -336,12 +338,18 @@ export default function AdminProductsPage() {
                 </div>
                 <div>
                   <label className="label-field">Category *</label>
-                  <div className="relative">
-                    <select name="category" value={form.category} onChange={handleChange} className="input-field appearance-none pr-8 cursor-pointer">
-                      {categories.map(c => <option key={c.slug} value={c.slug}>{c.label}</option>)}
-                    </select>
-                    <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-daami-gray" />
-                  </div>
+                  {categories.length === 0 ? (
+                    <p className="text-xs text-red-500 bg-red-50 border border-red-200 px-3 py-2">
+                      No categories found. Go to the <strong>Categories</strong> tab and create one first.
+                    </p>
+                  ) : (
+                    <div className="relative">
+                      <select name="category" value={form.category} onChange={handleChange} className="input-field appearance-none pr-8 cursor-pointer">
+                        {categories.map(c => <option key={c.slug} value={c.slug}>{c.label}</option>)}
+                      </select>
+                      <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-daami-gray" />
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="label-field">Badge</label>
@@ -505,7 +513,7 @@ export default function AdminProductsPage() {
               </div>
             </div>
 
-            <div className="flex gap-3 p-6 border-t border-gray-100 sticky bottom-0 bg-white">
+            <div className="flex gap-3 p-6 border-t border-gray-100 shrink-0 bg-white">
               <button onClick={() => setModalOpen(false)} className="btn-secondary flex-none px-6">Cancel</button>
               <button onClick={handleSave} disabled={saving} className="btn-primary flex-1 flex items-center justify-center gap-2 disabled:opacity-60">
                 {saving ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Check size={16} />}
