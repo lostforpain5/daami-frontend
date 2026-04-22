@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  phone     String?  @unique
+  password  String
+  role      String   @default("customer")
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id            String      @id @default(cuid())
+  name          String
+  slug          String      @unique
+  category      String
+  tags          String      @default("[]")
+  price         Float
+  originalPrice Float?
+  description   String
+  images        String      @default("[]")
+  sizes         String      @default("[]")
+  colors        String      @default("[]")
+  rating        Float       @default(4.5)
+  reviews       Int         @default(0)
+  inStock       Boolean     @default(true)
+  featured      Boolean     @default(false)
+  badge         String?
+  material      String?
+  care          String?
+  orderItems    OrderItem[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Order {
+  id        String      @id @default(cuid())
+  userId    String?
+  user      User?       @relation(fields: [userId], references: [id])
+  items     OrderItem[]
+  total     Float
+  shipping  Float       @default(0)
+  status    String      @default("Pending")
+  payment   Payment?
+  address   String
+  notes     String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  name      String
+  price     Float
+  quantity  Int
+  size      String
+  color     String
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  orderId   String   @unique
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  method    String
+  status    String   @default("Pending")
+  amount    Float
+  txnId     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  label       String
+  description String   @default("")
+  image       String   @default("")
+  bannerImage String   @default("")
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Banner {
+  id            String   @id @default(cuid())
+  tag           String   @default("")
+  title         String
+  subtitle      String   @default("")
+  cta           String   @default("Shop Now")
+  ctaHref       String   @default("/products")
+  secondaryCta  String   @default("View All")
+  secondaryHref String   @default("/products")
+  image         String   @default("")
+  align         String   @default("left")
+  order         Int      @default(0)
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}

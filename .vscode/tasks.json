@@ -1,0 +1,15 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Create Vite React TypeScript Project",
+			"type": "shell",
+			"command": "npx create-vite@latest . --template react-ts --yes"
+		},
+		{
+			"label": "Create Vite React TypeScript Project",
+			"type": "shell",
+			"command": "npx create-vite@latest . --template react-ts --yes"
+		}
+	]
+}
