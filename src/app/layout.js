@@ -2,9 +2,13 @@ import './globals.css';
 import { CartProvider } from '@/context/CartContext';
 import { AuthProvider } from '@/context/AuthContext';
 import { SettingsProvider } from '@/context/SettingsContext';
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
+import FrontendShell from '@/components/layout/FrontendShell';
 import { Toaster } from 'react-hot-toast';
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+};
 
 export const metadata = {
   title: { default: 'Daami Clothing — Premium Fashion', template: '%s | Daami Clothing' },
@@ -32,11 +36,7 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <SettingsProvider>
           <CartProvider>
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-1">{children}</main>
-              <Footer />
-            </div>
+            <FrontendShell>{children}</FrontendShell>
             <Toaster
               position="top-right"
               toastOptions={{

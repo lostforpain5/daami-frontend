@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Mail, Phone, MapPin, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useSettings } from '@/context/SettingsContext';
+import { usePathname } from 'next/navigation';
 
 const footerLinks = {
   shop: [
@@ -34,6 +35,8 @@ const footerLinks = {
 export default function Footer() {
   const [email, setEmail] = useState('');
   const { storeName, storeEmail, storePhone, storeAddress, khaltiEnabled, esewaEnabled, stripeEnabled, codEnabled } = useSettings();
+  const pathname = usePathname();
+  if (pathname.startsWith('/admin')) return null;
 
   const handleNewsletter = (e) => {
     e.preventDefault();

@@ -57,6 +57,8 @@ export default function Navbar() {
     setUserMenuOpen(false);
   }, [pathname]);
 
+  if (pathname.startsWith('/admin')) return null;
+
   return (
     <>
       {/* Announcement bar */}
