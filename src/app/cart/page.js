@@ -154,7 +154,7 @@ export default function CartPage() {
                       value={promoInput}
                       onChange={e => setPromoInput(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && applyPromo()}
-                      placeholder="Enter code (e.g. DAAMI10)"
+                      placeholder="Enter promo code"
                       className="flex-1 input-field text-xs py-2.5"
                     />
                     <button onClick={applyPromo} className="bg-daami-black text-white px-4 text-xs font-semibold hover:bg-daami-gold hover:text-daami-black transition-colors">

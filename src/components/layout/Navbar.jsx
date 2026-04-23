@@ -61,12 +61,7 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Announcement bar */}
-      <div className="bg-daami-black text-daami-gold text-center text-xs py-2 px-4 tracking-widest font-medium uppercase">
-        Use code: <span className="font-bold">DAAMI10</span> for 10% off
-      </div>
-
-      <nav className={`sticky top-0 z-50 bg-white transition-shadow duration-300 ${scrolled ? 'shadow-md' : 'border-b border-gray-100'}`}>
+<nav className={`sticky top-0 z-50 bg-white transition-shadow duration-300 ${scrolled ? 'shadow-md' : 'border-b border-gray-100'}`}>
         <div className="page-container">
           <div className="flex items-center justify-between h-16 md:h-20">
             {/* Mobile menu button */}
