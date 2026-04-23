@@ -120,6 +120,12 @@ export default function AdminLayout({ children }) {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
+        {/* DAAMI CLO store link — mobile only */}
+        <Link href="/" className="lg:hidden flex items-center justify-center gap-2 bg-daami-black py-2 shrink-0">
+          <span className="text-[11px] font-bold tracking-[0.25em] text-daami-gold uppercase">DAAMI CLO</span>
+          <span className="text-daami-gold/60 text-xs">↗</span>
+        </Link>
+
         {/* Top Bar */}
         <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-4 shrink-0">
           <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-1 text-daami-gray hover:text-daami-black">
