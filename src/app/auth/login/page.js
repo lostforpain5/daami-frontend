@@ -1,13 +1,15 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Lock, Mail, Phone, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 export default function LoginPage() {
   const { login, googleSignIn, isAuthenticated } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect') || '/';
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
@@ -17,14 +19,14 @@ export default function LoginPage() {
   const googleBtnRef = useRef(null);
   const googleCallbackRef = useRef(null);
 
-  if (isAuthenticated) { router.push('/'); return null; }
+  if (isAuthenticated) { router.push(redirectTo); return null; }
 
   googleCallbackRef.current = async (response) => {
     setError('');
     setGoogleLoading(true);
     const result = await googleSignIn(response.credential);
     setGoogleLoading(false);
-    if (result.success) router.push(result.user.role === 'admin' ? '/admin' : '/');
+    if (result.success) router.push(result.user.role === 'admin' ? '/admin' : redirectTo);
     else setError(result.error);
   };
 
@@ -61,7 +63,7 @@ export default function LoginPage() {
     const result = await login(identifier, password);
     setLoading(false);
     if (result.success) {
-      router.push(result.user.role === 'admin' ? '/admin' : '/');
+      router.push(result.user.role === 'admin' ? '/admin' : redirectTo);
     } else {
       setError(result.error);
     }
