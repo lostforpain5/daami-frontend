@@ -2,12 +2,16 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { ShoppingBag, Heart, Star, Eye } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import { formatPrice } from '@/data/products';
 
 export default function ProductCard({ product }) {
   const { addToCart } = useCart();
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
   const [hovered, setHovered] = useState(false);
   const [wishlisted, setWishlisted] = useState(false);
   const [imgIdx, setImgIdx] = useState(0);
@@ -19,6 +23,7 @@ export default function ProductCard({ product }) {
   const handleQuickAdd = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!isAuthenticated) { router.push(`/auth/login?redirect=/products/${product.id}`); return; }
     const defaultSize = product.sizes[Math.floor(product.sizes.length / 2)];
     addToCart(product, defaultSize, product.colors[0]);
   };

@@ -4,8 +4,10 @@ import Image from 'next/image';
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Tag } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useSettings } from '@/context/SettingsContext';
+import { useAuth } from '@/context/AuthContext';
 import { formatPrice } from '@/data/products';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
 const PROMO_CODES = { DAAMI10: 10, SAVE20: 20, WELCOME15: 15 };
@@ -13,6 +15,8 @@ const PROMO_CODES = { DAAMI10: 10, SAVE20: 20, WELCOME15: 15 };
 export default function CartPage() {
   const { items, removeFromCart, updateQuantity, clearCart, cartTotal } = useCart();
   const { freeShippingThreshold, shippingFee, khaltiEnabled, esewaEnabled, stripeEnabled, codEnabled } = useSettings();
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
   const [promoInput, setPromoInput] = useState('');
   const [appliedPromo, setAppliedPromo] = useState(null);
 
@@ -182,9 +186,12 @@ export default function CartPage() {
                 </div>
               </div>
 
-              <Link href="/checkout" className="btn-primary w-full text-center block mt-6 py-4 flex items-center justify-center gap-2">
+              <button
+                onClick={() => isAuthenticated ? router.push('/checkout') : router.push('/auth/login?redirect=/checkout')}
+                className="btn-primary w-full text-center mt-6 py-4 flex items-center justify-center gap-2"
+              >
                 Proceed to Checkout <ArrowRight size={16} />
-              </Link>
+              </button>
 
               <p className="text-[10px] text-center text-daami-gray mt-3">
                 🔒 Secure checkout with SSL encryption
