@@ -8,7 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 export default function RegisterPage() {
   const { register, googleSignIn, isAuthenticated } = useAuth();
   const router = useRouter();
-  const [tab, setTab] = useState('email'); // 'email' | 'phone'
+  const [tab, setTab] = useState('email');
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirm: '' });
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -17,7 +17,38 @@ export default function RegisterPage() {
   const googleBtnRef = useRef(null);
   const googleCallbackRef = useRef(null);
 
-  if (isAuthenticated) { router.push('/'); return null; }
+  // ALL hooks before any conditional return
+  useEffect(() => {
+    if (isAuthenticated) { router.push('/'); return; }
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (!clientId) return;
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      if (!window.google || !googleBtnRef.current) return;
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: (r) => googleCallbackRef.current(r),
+      });
+      window.google.accounts.id.renderButton(googleBtnRef.current, {
+        theme: 'outline', size: 'large', text: 'signup_with',
+        width: googleBtnRef.current.offsetWidth || 400,
+      });
+    };
+    document.head.appendChild(script);
+    return () => { if (document.head.contains(script)) document.head.removeChild(script); };
+  }, [isAuthenticated, router]);
+
+  googleCallbackRef.current = async (response) => {
+    setError('');
+    setGoogleLoading(true);
+    const result = await googleSignIn(response.credential);
+    setGoogleLoading(false);
+    if (result.success) router.push('/');
+    else setError(result.error);
+  };
 
   const handleChange = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
@@ -34,41 +65,6 @@ export default function RegisterPage() {
   const strengthLabel = ['', 'Weak', 'Fair', 'Good', 'Strong'][strength];
   const strengthColor = ['', 'bg-red-400', 'bg-yellow-400', 'bg-blue-400', 'bg-green-400'][strength];
 
-  googleCallbackRef.current = async (response) => {
-    setError('');
-    setGoogleLoading(true);
-    const result = await googleSignIn(response.credential);
-    setGoogleLoading(false);
-    if (result.success) router.push('/');
-    else setError(result.error);
-  };
-
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  useEffect(() => {
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    if (!clientId) return;
-
-    const script = document.createElement('script');
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      if (!window.google || !googleBtnRef.current) return;
-      window.google.accounts.id.initialize({
-        client_id: clientId,
-        callback: (r) => googleCallbackRef.current(r),
-      });
-      window.google.accounts.id.renderButton(googleBtnRef.current, {
-        theme: 'outline',
-        size: 'large',
-        text: 'signup_with',
-        width: googleBtnRef.current.offsetWidth || 400,
-      });
-    };
-    document.head.appendChild(script);
-    return () => { if (document.head.contains(script)) document.head.removeChild(script); };
-  }, []);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -83,7 +79,6 @@ export default function RegisterPage() {
     }
     if (form.password.length < 6) { setError('Password must be at least 6 characters'); return; }
     if (form.password !== form.confirm) { setError('Passwords do not match'); return; }
-
     setLoading(true);
     const email = tab === 'email' ? form.email : '';
     const phone = tab === 'phone' ? form.phone : form.phone;
@@ -92,6 +87,8 @@ export default function RegisterPage() {
     if (result.success) router.push('/');
     else setError(result.error);
   };
+
+  if (isAuthenticated) return null;
 
   const hasGoogleClientId = !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
@@ -112,7 +109,6 @@ export default function RegisterPage() {
             <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 mb-5">{error}</div>
           )}
 
-          {/* Google Sign-In */}
           {hasGoogleClientId && (
             <>
               <div ref={googleBtnRef} className="w-full flex justify-center mb-4" />
@@ -130,24 +126,13 @@ export default function RegisterPage() {
             </>
           )}
 
-          {/* Email / Phone Tabs */}
           <div className="flex border border-gray-200 mb-5">
-            <button
-              type="button"
-              onClick={() => { setTab('email'); setError(''); }}
-              className={`flex-1 py-2.5 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
-                tab === 'email' ? 'bg-daami-black text-white' : 'text-daami-gray hover:text-daami-black'
-              }`}
-            >
+            <button type="button" onClick={() => { setTab('email'); setError(''); }}
+              className={`flex-1 py-2.5 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${tab === 'email' ? 'bg-daami-black text-white' : 'text-daami-gray hover:text-daami-black'}`}>
               <Mail size={14} /> Email
             </button>
-            <button
-              type="button"
-              onClick={() => { setTab('phone'); setError(''); }}
-              className={`flex-1 py-2.5 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${
-                tab === 'phone' ? 'bg-daami-black text-white' : 'text-daami-gray hover:text-daami-black'
-              }`}
-            >
+            <button type="button" onClick={() => { setTab('phone'); setError(''); }}
+              className={`flex-1 py-2.5 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${tab === 'phone' ? 'bg-daami-black text-white' : 'text-daami-gray hover:text-daami-black'}`}>
               <Phone size={14} /> Phone
             </button>
           </div>
