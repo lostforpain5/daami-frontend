@@ -68,9 +68,7 @@ export default function Navbar() {
             <div key={i} className="flex shrink-0 items-center">
               <span className="mx-8 tracking-widest uppercase font-medium">New Collection Out Now</span>
               <span className="mx-2 text-daami-gold/40">|</span>
-              <span className="mx-8 tracking-widest uppercase font-medium">Free Shipping Above Rs. 3000</span>
-              <span className="mx-2 text-daami-gold/40">|</span>
-              <span className="mx-8 tracking-widest uppercase font-medium">Premium Quality Clothing</span>
+<span className="mx-8 tracking-widest uppercase font-medium">Premium Quality Clothing</span>
               <span className="mx-2 text-daami-gold/40">|</span>
               <span className="mx-8 tracking-widest uppercase font-medium">Shop The Latest Arrivals</span>
               <span className="mx-2 text-daami-gold/40">|</span>
