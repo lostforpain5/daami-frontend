@@ -12,6 +12,7 @@ import { formatPrice } from '@/data/products';
 import { searchLocations, getDeliveryCharge } from '@/data/delivery';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
+import { useLoginModal } from '@/context/LoginModalContext';
 import ProductCard from '@/components/products/ProductCard';
 import toast from 'react-hot-toast';
 
@@ -460,6 +461,7 @@ export default function ProductDetailPage({ params }) {
   const router = useRouter();
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuth();
+  const { openLoginModal } = useLoginModal();
 
   const [product, setProduct] = useState(null);
   const [related, setRelated] = useState([]);
@@ -520,7 +522,7 @@ export default function ProductDetailPage({ params }) {
   };
 
   const handleAddToCart = () => {
-    if (!isAuthenticated) { router.push(`/auth/login?redirect=/products/${id}`); return; }
+    if (!isAuthenticated) { openLoginModal(); return; }
     if (!selectedSize) { setSizeError(true); return; }
     setSizeError(false);
     addToCart(product, selectedSize, selectedColor, quantity);
@@ -529,7 +531,7 @@ export default function ProductDetailPage({ params }) {
   };
 
   const handleBuyNow = () => {
-    if (!isAuthenticated) { router.push(`/auth/login?redirect=/products/${id}`); return; }
+    if (!isAuthenticated) { openLoginModal(); return; }
     if (!selectedSize) {
       setSizeError(true);
       setBuyError('Please select a size first');

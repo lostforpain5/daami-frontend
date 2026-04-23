@@ -4,6 +4,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import { SettingsProvider } from '@/context/SettingsContext';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
+import { LoginModalProvider } from '@/context/LoginModalContext';
 import { Toaster } from 'react-hot-toast';
 
 export const viewport = {
@@ -37,6 +38,7 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <SettingsProvider>
           <CartProvider>
+            <LoginModalProvider>
             <div className="flex flex-col min-h-screen">
               <Navbar />
               <main className="flex-1">{children}</main>
@@ -50,6 +52,7 @@ export default function RootLayout({ children }) {
                 success: { iconTheme: { primary: '#C9A84C', secondary: '#fff' } },
               }}
             />
+            </LoginModalProvider>
           </CartProvider>
           </SettingsProvider>
         </AuthProvider>

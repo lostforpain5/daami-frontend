@@ -5,6 +5,7 @@ import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Tag } from 'lucide-react'
 import { useCart } from '@/context/CartContext';
 import { useSettings } from '@/context/SettingsContext';
 import { useAuth } from '@/context/AuthContext';
+import { useLoginModal } from '@/context/LoginModalContext';
 import { formatPrice } from '@/data/products';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -16,6 +17,7 @@ export default function CartPage() {
   const { items, removeFromCart, updateQuantity, clearCart, cartTotal } = useCart();
   const { freeShippingThreshold, shippingFee, khaltiEnabled, esewaEnabled, stripeEnabled, codEnabled } = useSettings();
   const { isAuthenticated } = useAuth();
+  const { openLoginModal } = useLoginModal();
   const router = useRouter();
   const [promoInput, setPromoInput] = useState('');
   const [appliedPromo, setAppliedPromo] = useState(null);
@@ -187,7 +189,7 @@ export default function CartPage() {
               </div>
 
               <button
-                onClick={() => isAuthenticated ? router.push('/checkout') : router.push('/auth/login?redirect=/checkout')}
+                onClick={() => isAuthenticated ? router.push('/checkout') : openLoginModal()}
                 className="btn-primary w-full text-center mt-6 py-4 flex items-center justify-center gap-2"
               >
                 Proceed to Checkout <ArrowRight size={16} />
