@@ -19,19 +19,9 @@ function LoginForm() {
   const googleBtnRef = useRef(null);
   const googleCallbackRef = useRef(null);
 
-  if (isAuthenticated) { router.push(redirectTo); return null; }
-
-  googleCallbackRef.current = async (response) => {
-    setError('');
-    setGoogleLoading(true);
-    const result = await googleSignIn(response.credential);
-    setGoogleLoading(false);
-    if (result.success) router.push(result.user.role === 'admin' ? '/admin' : redirectTo);
-    else setError(result.error);
-  };
-
-  // eslint-disable-next-line react-hooks/rules-of-hooks
+  // ALL hooks must be declared before any conditional return
   useEffect(() => {
+    if (isAuthenticated) { router.push(redirectTo); return; }
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     if (!clientId) return;
     const script = document.createElement('script');
@@ -53,7 +43,16 @@ function LoginForm() {
     };
     document.head.appendChild(script);
     return () => { if (document.head.contains(script)) document.head.removeChild(script); };
-  }, []);
+  }, [isAuthenticated, redirectTo]);
+
+  googleCallbackRef.current = async (response) => {
+    setError('');
+    setGoogleLoading(true);
+    const result = await googleSignIn(response.credential);
+    setGoogleLoading(false);
+    if (result.success) router.push(result.user.role === 'admin' ? '/admin' : redirectTo);
+    else setError(result.error);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -68,6 +67,8 @@ function LoginForm() {
       setError(result.error);
     }
   };
+
+  if (isAuthenticated) return null;
 
   const hasGoogleClientId = !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
