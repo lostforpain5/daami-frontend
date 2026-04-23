@@ -11,7 +11,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
-const PROMO_CODES = { DAAMI10: 10, SAVE20: 20, WELCOME15: 15 };
+const PROMO_CODES = { SAVE20: 20, WELCOME15: 15 };
 
 export default function CartPage() {
   const { items, removeFromCart, updateQuantity, clearCart, cartTotal } = useCart();
