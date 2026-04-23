@@ -61,7 +61,25 @@ export default function Navbar() {
 
   return (
     <>
-<nav className={`sticky top-0 z-50 bg-white transition-shadow duration-300 ${scrolled ? 'shadow-md' : 'border-b border-gray-100'}`}>
+      {/* Scrolling announcement bar */}
+      <div className="bg-daami-black text-daami-gold text-[11px] py-2 overflow-hidden whitespace-nowrap relative">
+        <div className="flex animate-marquee">
+          {[0, 1].map((i) => (
+            <div key={i} className="flex shrink-0 items-center">
+              <span className="mx-8 tracking-widest uppercase font-medium">New Collection Out Now</span>
+              <span className="mx-2 text-daami-gold/40">|</span>
+              <span className="mx-8 tracking-widest uppercase font-medium">Free Shipping Above Rs. 3000</span>
+              <span className="mx-2 text-daami-gold/40">|</span>
+              <span className="mx-8 tracking-widest uppercase font-medium">Premium Quality Clothing</span>
+              <span className="mx-2 text-daami-gold/40">|</span>
+              <span className="mx-8 tracking-widest uppercase font-medium">Shop The Latest Arrivals</span>
+              <span className="mx-2 text-daami-gold/40">|</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <nav className={`sticky top-0 z-50 bg-white transition-shadow duration-300 ${scrolled ? 'shadow-md' : 'border-b border-gray-100'}`}>
         <div className="page-container">
           <div className="flex items-center justify-between h-16 md:h-20">
             {/* Mobile menu button */}
