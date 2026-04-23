@@ -2,7 +2,8 @@ import './globals.css';
 import { CartProvider } from '@/context/CartContext';
 import { AuthProvider } from '@/context/AuthContext';
 import { SettingsProvider } from '@/context/SettingsContext';
-import FrontendShell from '@/components/layout/FrontendShell';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
 import { Toaster } from 'react-hot-toast';
 
 export const viewport = {
@@ -36,7 +37,11 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           <SettingsProvider>
           <CartProvider>
-            <FrontendShell>{children}</FrontendShell>
+            <div className="flex flex-col min-h-screen">
+              <Navbar />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
             <Toaster
               position="top-right"
               toastOptions={{
