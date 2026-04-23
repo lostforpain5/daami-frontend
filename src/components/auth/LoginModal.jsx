@@ -16,7 +16,12 @@ export default function LoginModal({ isOpen, onClose, onSuccess }) {
   const googleCallbackRef = useRef(null);
 
   useEffect(() => {
-    if (!isOpen) { setIdentifier(''); setPassword(''); setError(''); return; }
+    if (!isOpen) {
+      setIdentifier(''); setPassword(''); setError('');
+      document.body.style.overflow = '';
+      return;
+    }
+    document.body.style.overflow = 'hidden';
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     if (!clientId || !googleBtnRef.current) return;
     const script = document.createElement('script');

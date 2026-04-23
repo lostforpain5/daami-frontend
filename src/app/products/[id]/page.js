@@ -103,6 +103,11 @@ function BuyNowModal({ product, selectedSize, selectedColor, quantity, onClose }
   const grandTotal = productTotal + deliveryCharge;
 
   useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
+  useEffect(() => {
     fetch('/api/settings/public')
       .then(r => r.json())
       .then(data => setQrCode(data.settings?.paymentQrCode || ''))
