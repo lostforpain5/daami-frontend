@@ -1,5 +1,6 @@
 'use client';
 import { createContext, useContext, useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
 const AuthContext = createContext(null);
@@ -8,6 +9,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     try {
@@ -89,6 +91,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('daami_token');
     localStorage.removeItem('daami_user');
     toast.success('Logged out successfully');
+    router.push('/auth/login');
   };
 
   const authFetch = (url, options = {}) => {
