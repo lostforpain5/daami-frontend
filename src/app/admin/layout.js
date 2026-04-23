@@ -50,6 +50,12 @@ export default function AdminLayout({ children }) {
       <aside className={`fixed lg:static inset-y-0 left-0 z-40 w-60 bg-daami-black text-white flex flex-col transition-transform duration-300 ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       }`}>
+        {/* Store Link */}
+        <Link href="/" className="flex items-center justify-center gap-2 px-5 py-2.5 bg-daami-gold/10 border-b border-daami-gold/20 hover:bg-daami-gold/20 transition-colors group">
+          <span className="text-[11px] font-bold tracking-[0.2em] text-daami-gold uppercase group-hover:text-white transition-colors">DAAMI CLO</span>
+          <span className="text-daami-gold/60 text-[10px] group-hover:text-white/60 transition-colors">↗</span>
+        </Link>
+
         {/* Sidebar Header */}
         <div className="p-5 border-b border-white/10 flex items-center justify-between">
           <Link href="/admin" className="flex flex-col">
