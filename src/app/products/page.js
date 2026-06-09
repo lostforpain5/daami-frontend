@@ -5,6 +5,8 @@ import { Suspense } from 'react';
 import ProductCard from '@/components/products/ProductCard';
 import { categories } from '@/data/products';
 import { SlidersHorizontal, X, ChevronDown } from 'lucide-react';
+import DockGroup from '@/components/ui/DockGroup';
+import DockItem from '@/components/ui/DockItem';
 
 const sortOptions = [
   { label: 'Featured', value: 'featured' },
@@ -188,9 +190,13 @@ function ProductsContent() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
-              {filtered.map(p => <ProductCard key={p.id} product={p} />)}
-            </div>
+            <DockGroup className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
+              {filtered.map(p => (
+                <DockItem key={p.id}>
+                  <ProductCard product={p} />
+                </DockItem>
+              ))}
+            </DockGroup>
           )}
         </div>
       </div>

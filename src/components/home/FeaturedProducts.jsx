@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import ProductCard from '@/components/products/ProductCard';
+import DockGroup from '@/components/ui/DockGroup';
+import DockItem from '@/components/ui/DockItem';
 
 const tabs = [
   { label: 'Featured', filter: (p) => p.featured },
@@ -70,15 +72,17 @@ export default function FeaturedProducts() {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          <DockGroup className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {displayed.length > 0 ? (
               displayed.map(product => (
-                <ProductCard key={product.id} product={product} />
+                <DockItem key={product.id}>
+                  <ProductCard product={product} />
+                </DockItem>
               ))
             ) : (
               <p className="col-span-full text-center text-daami-gray py-12">No products found in this category.</p>
             )}
-          </div>
+          </DockGroup>
         )}
       </div>
     </section>

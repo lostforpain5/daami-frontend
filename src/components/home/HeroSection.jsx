@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import DockGroup from '@/components/ui/DockGroup';
+import DockItem from '@/components/ui/DockItem';
 
 const FALLBACK = [
   {
@@ -17,6 +19,12 @@ const FALLBACK = [
     image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&h=800&fit=crop',
     align: 'left',
   },
+];
+
+const stats = [
+  { value: '500+', label: 'Products' },
+  { value: '10K+', label: 'Happy Customers' },
+  { value: '5★', label: 'Avg Rating' },
 ];
 
 export default function HeroSection() {
@@ -108,7 +116,7 @@ export default function HeroSection() {
         </div>
       </div>
 
-      {/* Navigation Arrows — only if multiple slides */}
+      {/* Navigation Arrows */}
       {slides.length > 1 && (
         <>
           <button onClick={prev} aria-label="Previous" className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 md:w-12 md:h-12 bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white hover:bg-daami-gold hover:border-daami-gold hover:text-daami-black transition-all duration-200">
@@ -133,18 +141,16 @@ export default function HeroSection() {
       {/* Stats bar */}
       <div className="absolute bottom-0 left-0 right-0 z-20 hidden md:flex">
         <div className="page-container">
-          <div className="flex items-stretch divide-x divide-white/10 bg-daami-black/60 backdrop-blur-sm w-fit">
-            {[
-              { value: '500+', label: 'Products' },
-              { value: '10K+', label: 'Happy Customers' },
-              { value: '5★', label: 'Avg Rating' },
-            ].map(({ value, label }) => (
-              <div key={label} className="px-6 py-3 flex flex-col items-center">
-                <span className="text-daami-gold font-bold text-lg leading-none">{value}</span>
-                <span className="text-white/60 text-[10px] uppercase tracking-wider mt-0.5">{label}</span>
-              </div>
+          <DockGroup className="flex items-stretch divide-x divide-white/10 bg-daami-black/60 backdrop-blur-sm w-fit" isolate={false}>
+            {stats.map(({ value, label }) => (
+              <DockItem key={label}>
+                <div className="px-6 py-3 flex flex-col items-center">
+                  <span className="text-daami-gold font-bold text-lg leading-none">{value}</span>
+                  <span className="text-white/60 text-[10px] uppercase tracking-wider mt-0.5">{label}</span>
+                </div>
+              </DockItem>
             ))}
-          </div>
+          </DockGroup>
         </div>
       </div>
     </section>
