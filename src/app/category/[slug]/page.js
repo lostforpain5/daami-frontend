@@ -39,8 +39,9 @@ export default function CategoryPage({ params }) {
   }, [slug]);
 
   useEffect(() => {
-    const param = slug === 'new-arrivals' ? 'tag=new-arrivals' :
-                  slug === 'trending'     ? 'tag=trending' :
+    const param = slug === 'new-arrivals'  ? 'tag=new-arrivals' :
+                  slug === 'best-sellers'  ? 'tag=trending' :
+                  slug === 'trending'      ? 'tag=trending' :
                   `category=${slug}`;
     fetch(`/api/products?${param}`)
       .then(r => r.json())

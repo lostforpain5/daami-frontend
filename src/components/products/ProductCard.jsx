@@ -2,18 +2,13 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ShoppingBag, Heart, Star, Eye } from 'lucide-react';
+import { ShoppingBag, Star, Eye } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
-import { useAuth } from '@/context/AuthContext';
-import { useLoginModal } from '@/context/LoginModalContext';
 import { formatPrice } from '@/data/products';
 
 export default function ProductCard({ product }) {
   const { addToCart } = useCart();
-  const { isAuthenticated } = useAuth();
-  const { openLoginModal } = useLoginModal();
   const [hovered, setHovered] = useState(false);
-  const [wishlisted, setWishlisted] = useState(false);
   const [imgIdx, setImgIdx] = useState(0);
 
   const discount = product.originalPrice
@@ -23,8 +18,7 @@ export default function ProductCard({ product }) {
   const handleQuickAdd = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!isAuthenticated) { openLoginModal(); return; }
-    const defaultSize = product.sizes[Math.floor(product.sizes.length / 2)];
+    const defaultSize = product.sizes[Math.floor(product.sizes.length / 2)] || 'Freesize';
     addToCart(product, defaultSize, product.colors[0]);
   };
 
@@ -62,17 +56,6 @@ export default function ProductCard({ product }) {
             </span>
           )}
         </div>
-
-        {/* Wishlist */}
-        <button
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setWishlisted(!wishlisted); }}
-          className={`absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-md transition-all duration-200 ${
-            hovered ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2'
-          } ${wishlisted ? 'text-red-500' : 'text-daami-gray hover:text-red-500'}`}
-          aria-label="Wishlist"
-        >
-          <Heart size={15} fill={wishlisted ? 'currentColor' : 'none'} />
-        </button>
 
         {/* Quick Add overlay */}
         <div className={`absolute bottom-0 left-0 right-0 bg-daami-black/90 py-3 px-4 flex items-center justify-between transition-all duration-300 ${
@@ -121,15 +104,13 @@ export default function ProductCard({ product }) {
           )}
         </div>
 
-        {/* Color dots */}
-        <div className="flex items-center gap-1 mt-2">
-          {product.colors.slice(0, 4).map((color, i) => (
-            <div key={i} className="w-3 h-3 rounded-full border border-gray-200 bg-gray-300" title={color} />
-          ))}
-          {product.colors.length > 4 && (
-            <span className="text-[10px] text-daami-gray">+{product.colors.length - 4}</span>
-          )}
-        </div>
+        {/* Buy Now — one click to the product page to complete the order */}
+        <Link
+          href={`/products/${product.id}`}
+          className="mt-3 w-full flex items-center justify-center gap-2 bg-daami-gold text-daami-black text-xs md:text-sm font-bold uppercase tracking-wide py-2.5 hover:bg-daami-black hover:text-white transition-colors"
+        >
+          <ShoppingBag size={14} /> Buy Now
+        </Link>
       </div>
     </div>
   );

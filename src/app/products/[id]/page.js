@@ -5,14 +5,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  Star, Heart, ShoppingBag, Shield, Truck, Package, RefreshCw,
-  ChevronRight, Minus, Plus, Share2, Check, X, CreditCard, Banknote, AlertCircle, Loader2, ImagePlus, MapPin
+  Star, Heart, ShoppingBag, Shield, Truck, RefreshCw,
+  ChevronRight, Minus, Plus, Share2, Check, X, CreditCard, Banknote, AlertCircle, Loader2, ImagePlus, MapPin, MessageCircle
 } from 'lucide-react';
 import { formatPrice } from '@/data/products';
 import { searchLocations, getDeliveryCharge } from '@/data/delivery';
+import { whatsappLink, whatsappOrderMessage } from '@/data/store';
 import { useCart } from '@/context/CartContext';
-import { useAuth } from '@/context/AuthContext';
-import { useLoginModal } from '@/context/LoginModalContext';
 import ProductCard from '@/components/products/ProductCard';
 import toast from 'react-hot-toast';
 
@@ -84,11 +83,11 @@ function ScreenshotUpload({ screenshot, setScreenshot, screenshotRef, screenshot
 
 // ─── Buy Now Modal ────────────────────────────────────────────────────────────
 function BuyNowModal({ product, selectedSize, selectedColor, quantity, onClose }) {
-  // step: delivery | details | payment | done
-  const [step, setStep] = useState('delivery');
-  const [deliveryType, setDeliveryType] = useState(''); // home | courier
+  // step: details | payment | done
+  const [step, setStep] = useState('details');
+  const deliveryType = 'home'; // simplified: home delivery only
   const [paymentMethod, setPaymentMethod] = useState(''); // online | cod
-  const [form, setForm] = useState({ name: '', phone: '', address: '', location: '', branch: '' });
+  const [form, setForm] = useState({ name: '', phone: '', address: '', location: '' });
   const [locationQuery, setLocationQuery] = useState('');
   const [locationSuggestions, setLocationSuggestions] = useState([]);
   const [errors, setErrors] = useState({});
@@ -175,8 +174,8 @@ function BuyNowModal({ product, selectedSize, selectedColor, quantity, onClose }
         name: form.name,
         phone: form.phone,
         location: form.location,
-        deliveryType: deliveryType === 'home' ? 'Home Delivery' : 'Courier Branch Pickup',
-        ...(deliveryType === 'home' ? { address: form.address } : { branch: form.branch }),
+        deliveryType: 'Home Delivery',
+        address: form.address,
       };
 
       const res = await fetch('/api/orders', {
@@ -256,8 +255,7 @@ function BuyNowModal({ product, selectedSize, selectedColor, quantity, onClose }
   );
 
   const headerTitle = {
-    delivery: 'Choose Delivery',
-    details: deliveryType === 'home' ? 'Home Delivery' : 'Courier Branch Pickup',
+    details: 'Your Delivery Details',
     payment: 'Payment',
   }[step];
 
@@ -275,52 +273,7 @@ function BuyNowModal({ product, selectedSize, selectedColor, quantity, onClose }
         <div className="px-6 py-5">
           <Summary />
 
-          {/* ── Step 1: Choose Delivery Method ── */}
-          {step === 'delivery' && (
-            <div className="space-y-3">
-              <p className="text-xs text-daami-gray -mt-2 mb-1">How would you like to receive your order?</p>
-
-              <button
-                onClick={() => { setDeliveryType('home'); setStep('details'); }}
-                className="w-full flex items-center gap-4 p-4 border-2 border-gray-200 hover:border-daami-gold hover:bg-daami-cream/40 transition-all group text-left"
-              >
-                <div className="w-11 h-11 rounded-full bg-daami-gold/10 group-hover:bg-daami-gold/20 flex items-center justify-center shrink-0">
-                  <Truck size={20} className="text-daami-gold" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-daami-black text-sm">Home Delivery</p>
-                  <p className="text-xs text-daami-gray mt-0.5">Delivered to your doorstep</p>
-                  <div className="flex gap-2 mt-1.5 flex-wrap">
-                    <span className="text-[10px] bg-daami-cream px-1.5 py-0.5 text-daami-dark-gray">Valley NPR 120</span>
-                    <span className="text-[10px] bg-daami-cream px-1.5 py-0.5 text-daami-dark-gray">Major City NPR 200</span>
-                    <span className="text-[10px] bg-daami-cream px-1.5 py-0.5 text-daami-dark-gray">Standard NPR 170</span>
-                  </div>
-                </div>
-                <ChevronRight size={16} className="text-daami-gray shrink-0" />
-              </button>
-
-              <button
-                onClick={() => { setDeliveryType('courier'); setStep('details'); }}
-                className="w-full flex items-center gap-4 p-4 border-2 border-gray-200 hover:border-daami-gold hover:bg-daami-cream/40 transition-all group text-left"
-              >
-                <div className="w-11 h-11 rounded-full bg-daami-gold/10 group-hover:bg-daami-gold/20 flex items-center justify-center shrink-0">
-                  <Package size={20} className="text-daami-gold" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-daami-black text-sm">Courier Branch Pickup</p>
-                  <p className="text-xs text-daami-gray mt-0.5">Pick up from nearest courier office</p>
-                  <div className="flex gap-2 mt-1.5 flex-wrap">
-                    <span className="text-[10px] bg-daami-cream px-1.5 py-0.5 text-daami-dark-gray">Valley NPR 70</span>
-                    <span className="text-[10px] bg-daami-cream px-1.5 py-0.5 text-daami-dark-gray">Major City NPR 150</span>
-                    <span className="text-[10px] bg-daami-cream px-1.5 py-0.5 text-daami-dark-gray">Standard NPR 150</span>
-                  </div>
-                </div>
-                <ChevronRight size={16} className="text-daami-gray shrink-0" />
-              </button>
-            </div>
-          )}
-
-          {/* ── Step 2: Delivery Details (shared for home + courier) ── */}
+          {/* ── Step 1: Delivery Details ── */}
           {step === 'details' && (
             <div className="space-y-4">
               <Field name="name" label="Full Name *" placeholder="Your full name" value={form.name} onChange={handleChange} error={errors.name} />
@@ -350,9 +303,7 @@ function BuyNowModal({ product, selectedSize, selectedColor, quantity, onClose }
                         className="w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-daami-cream transition-colors text-left"
                       >
                         <span className="font-medium text-daami-black">{loc.name}</span>
-                        <span className="text-xs text-daami-gray shrink-0 ml-2">
-                          {deliveryType === 'home' ? `NPR ${loc.home}` : `NPR ${loc.courier}`}
-                        </span>
+                        <span className="text-xs text-daami-gray shrink-0 ml-2">NPR {loc.home}</span>
                       </button>
                     ))}
                   </div>
@@ -365,7 +316,7 @@ function BuyNowModal({ product, selectedSize, selectedColor, quantity, onClose }
                   <div className="flex items-center justify-between bg-daami-cream border border-daami-gold/30 px-4 py-2.5">
                     <span className="text-xs text-daami-gray flex items-center gap-1.5">
                       <MapPin size={11} />
-                      {form.location} · {deliveryType === 'home' ? 'Home Delivery' : 'Courier Pickup'}
+                      {form.location} · Home Delivery
                     </span>
                     <span className="text-sm font-bold text-daami-gold">NPR {deliveryCharge}</span>
                   </div>
@@ -373,18 +324,11 @@ function BuyNowModal({ product, selectedSize, selectedColor, quantity, onClose }
                 </>
               )}
 
-              {/* Home delivery: full address */}
-              {deliveryType === 'home' && (
-                <Field name="address" label="Full Address *" placeholder="Street, Tole, Landmark" value={form.address} onChange={handleChange} error={errors.address} />
-              )}
-
-              {/* Courier: branch (optional) */}
-              {deliveryType === 'courier' && (
-                <Field name="branch" label="Courier Branch (optional)" placeholder="e.g. New Road branch" value={form.branch} onChange={handleChange} error={errors.branch} />
-              )}
+              {/* Full delivery address */}
+              <Field name="address" label="Full Address *" placeholder="Street, Tole, Landmark" value={form.address} onChange={handleChange} error={errors.address} />
 
               <div className="flex gap-3 pt-1">
-                <button onClick={() => { setStep('delivery'); setForm(f => ({ ...f, location: '' })); setLocationQuery(''); setLocationSuggestions([]); }} className="btn-secondary px-5">Back</button>
+                <button onClick={onClose} className="btn-secondary px-5">Cancel</button>
                 <button onClick={() => { if (validateDetails()) setStep('payment'); }} className="btn-gold flex-1">Continue to Payment</button>
               </div>
             </div>
@@ -465,8 +409,6 @@ export default function ProductDetailPage({ params }) {
   const { id } = use(params);
   const router = useRouter();
   const { addToCart } = useCart();
-  const { isAuthenticated } = useAuth();
-  const { openLoginModal } = useLoginModal();
 
   const [product, setProduct] = useState(null);
   const [related, setRelated] = useState([]);
@@ -527,7 +469,6 @@ export default function ProductDetailPage({ params }) {
   };
 
   const handleAddToCart = () => {
-    if (!isAuthenticated) { openLoginModal(); return; }
     if (!selectedSize) { setSizeError(true); return; }
     setSizeError(false);
     addToCart(product, selectedSize, selectedColor, quantity);
@@ -536,7 +477,6 @@ export default function ProductDetailPage({ params }) {
   };
 
   const handleBuyNow = () => {
-    if (!isAuthenticated) { openLoginModal(); return; }
     if (!selectedSize) {
       setSizeError(true);
       setBuyError('Please select a size first');
@@ -546,6 +486,19 @@ export default function ProductDetailPage({ params }) {
     setSizeError(false);
     setBuyError('');
     setBuyModalOpen(true);
+  };
+
+  const handleWhatsAppOrder = () => {
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    const message = whatsappOrderMessage({
+      name: product.name,
+      price: product.price,
+      size: selectedSize || undefined,
+      color: selectedColor || undefined,
+      quantity,
+      url,
+    });
+    window.open(whatsappLink(message), '_blank');
   };
 
   const COLOR_MAP = {
@@ -783,6 +736,14 @@ export default function ProductDetailPage({ params }) {
               className="block w-full mt-3 btn-gold text-center py-4 text-sm font-semibold uppercase tracking-wide"
             >
               Buy Now
+            </button>
+
+            {/* WhatsApp Order — order directly by chat, no forms */}
+            <button
+              onClick={handleWhatsAppOrder}
+              className="flex items-center justify-center gap-2.5 w-full mt-3 py-4 text-sm font-semibold uppercase tracking-wide bg-[#25D366] text-white hover:bg-[#1da851] transition-colors"
+            >
+              <MessageCircle size={18} /> Order on WhatsApp
             </button>
 
             {buyError && (

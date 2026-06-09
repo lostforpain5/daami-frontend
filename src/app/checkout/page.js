@@ -21,7 +21,7 @@ const ALL_PAYMENT_METHODS = [
 
 export default function CheckoutPage() {
   const { items, cartTotal, clearCart } = useCart();
-  const { isAuthenticated, user, authFetch } = useAuth();
+  const { user, authFetch } = useAuth();
   const { freeShippingThreshold, shippingFee, ...paymentSettings } = useSettings();
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -45,8 +45,8 @@ export default function CheckoutPage() {
 
   const validateDelivery = () => {
     if (!form.name.trim()) { toast.error('Full name is required'); return false; }
-    if (!form.location.trim()) { toast.error('Location is required'); return false; }
     if (!form.phone.trim()) { toast.error('Phone number is required'); return false; }
+    if (!form.location.trim()) { toast.error('Delivery address is required'); return false; }
     return true;
   };
 
@@ -175,20 +175,6 @@ export default function CheckoutPage() {
     );
   }
 
-  if (!isAuthenticated) {
-    return (
-      <div className="page-container py-24 text-center">
-        <Lock size={40} className="mx-auto text-daami-gold mb-4" />
-        <h2 className="text-2xl font-bold">Login Required</h2>
-        <p className="text-daami-gray mt-2">Please log in to complete your purchase.</p>
-        <div className="flex gap-4 justify-center mt-6">
-          <Link href="/auth/login" className="btn-primary">Login</Link>
-          <Link href="/auth/register" className="btn-secondary">Create Account</Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="bg-daami-cream min-h-screen py-10">
       <div className="page-container max-w-5xl">
@@ -224,23 +210,20 @@ export default function CheckoutPage() {
             {/* STEP 1: Delivery */}
             {step === 1 && (
               <div className="bg-white p-6 md:p-8">
-                <h2 className="text-xl font-bold text-daami-black mb-6">Delivery Information</h2>
+                <h2 className="text-xl font-bold text-daami-black mb-1">Delivery Details</h2>
+                <p className="text-sm text-daami-gray mb-6">No account needed — just fill in these 3 details.</p>
                 <div className="space-y-4">
                   <div>
                     <label className="label-field">Full Name *</label>
                     <input type="text" name="name" value={form.name} onChange={handleFormChange} placeholder="Your full name" className="input-field" />
                   </div>
                   <div>
-                    <label className="label-field">Location *</label>
-                    <input type="text" name="location" value={form.location} onChange={handleFormChange} placeholder="City, District, Street address" className="input-field" />
-                  </div>
-                  <div>
                     <label className="label-field">Phone Number *</label>
                     <input type="tel" name="phone" value={form.phone} onChange={handleFormChange} placeholder="98XXXXXXXX" className="input-field" />
                   </div>
                   <div>
-                    <label className="label-field">Order Notes (optional)</label>
-                    <textarea name="notes" value={form.notes} onChange={handleFormChange} placeholder="e.g. Leave at gate, call before delivery..." rows={3} className="input-field resize-none" />
+                    <label className="label-field">Full Delivery Address *</label>
+                    <input type="text" name="location" value={form.location} onChange={handleFormChange} placeholder="City, District, Street / Tole, Landmark" className="input-field" />
                   </div>
                 </div>
                 <button
