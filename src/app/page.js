@@ -5,25 +5,21 @@ import HomeProducts from '@/components/home/HomeProducts';
 export default function HomePage() {
   return (
     <>
-      {/* Simple, clean hero — no slider, no clutter */}
-      <section className="bg-daami-black text-center px-4 py-16 md:py-24">
-        <h1 className="text-3xl md:text-5xl font-bold text-white leading-tight">
-          Daami Clothing
+      {/* Compact hero — small, so products are visible right away */}
+      <section className="bg-daami-black text-center px-4 py-8 md:py-12">
+        <h1 className="text-2xl md:text-4xl font-bold text-white leading-tight">
+          Trending Couple T-Shirts
         </h1>
-        <p className="text-white/70 mt-4 max-w-md mx-auto text-sm md:text-base">
-          Premium couple &amp; matching t-shirts. Order online in just a few taps —
-          no account needed.
+        <p className="text-white/70 mt-2 max-w-md mx-auto text-sm">
+          Pick a design and press <span className="text-daami-gold font-semibold">Buy Now</span> — no account needed.
         </p>
-        <Link
-          href="/category/couple-tshirt"
-          className="inline-block mt-7 bg-daami-gold text-daami-black font-bold text-sm md:text-base px-8 py-3.5 rounded-full hover:bg-white transition-colors"
-        >
-          Shop Now
-        </Link>
       </section>
 
-      <SimpleCategories />
+      {/* Products first — customer can buy immediately */}
       <HomeProducts />
+
+      {/* Browse by category */}
+      <SimpleCategories />
     </>
   );
 }
