@@ -1,13 +1,13 @@
 'use client';
-import { MessageCircle, Phone, Mail, MapPin, Clock } from 'lucide-react';
+import Link from 'next/link';
+import { ShoppingBag, Phone, Mail, MapPin, Clock } from 'lucide-react';
 import { useSettings } from '@/context/SettingsContext';
-import { whatsappLink } from '@/data/store';
 
 export default function ContactPage() {
   const { storeName, storeEmail, storePhone, storeAddress } = useSettings();
 
   const email = storeEmail || 'hello@daamiclothing.com';
-  const phone = storePhone || '+977 9800000000';
+  const phone = storePhone || '+977 9766598459';
   const address = storeAddress || 'New Road, Kathmandu, Nepal';
 
   return (
@@ -16,24 +16,28 @@ export default function ContactPage() {
       <div className="bg-daami-black text-center py-12 md:py-16 px-4">
         <h1 className="text-3xl md:text-4xl font-bold text-white">Contact Us</h1>
         <p className="text-white/60 mt-3 max-w-md mx-auto text-sm">
-          Have a question or want to order? We&apos;re here to help — reach us the easy way.
+          We&apos;re here to help.
         </p>
       </div>
 
       <div className="page-container py-10 md:py-14 max-w-2xl">
-        {/* WhatsApp — primary, biggest action */}
-        <a
-          href={whatsappLink('Hello Daami Clothing! 👋 I have a question.')}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-3 w-full bg-[#25D366] text-white text-base md:text-lg font-bold py-5 rounded-lg hover:bg-[#1da851] transition-colors shadow-sm"
-        >
-          <MessageCircle size={24} /> Chat with us on WhatsApp
-        </a>
-        <p className="text-center text-xs text-daami-gray mt-2">Fastest way to reach us — we usually reply within minutes.</p>
+        {/* Order on the website — primary message */}
+        <div className="bg-white rounded-lg p-6 md:p-8 text-center">
+          <h2 className="text-xl font-bold text-daami-black">How to Order</h2>
+          <p className="text-sm text-daami-gray mt-2 max-w-md mx-auto">
+            Please place your order directly on our website — it only takes a few taps,
+            and you don&apos;t need an account. Just pick a t-shirt and press <strong>Buy Now</strong>.
+          </p>
+          <Link
+            href="/category/couple-tshirt"
+            className="inline-flex items-center justify-center gap-2 mt-5 bg-daami-gold text-daami-black font-bold text-sm md:text-base px-8 py-3.5 rounded-full hover:bg-daami-black hover:text-white transition-colors"
+          >
+            <ShoppingBag size={18} /> Shop Now
+          </Link>
+        </div>
 
-        {/* Other ways to reach us */}
-        <div className="grid sm:grid-cols-2 gap-4 mt-8">
+        {/* Reach us */}
+        <div className="grid sm:grid-cols-2 gap-4 mt-6">
           <a href={`tel:${phone.replace(/\s+/g, '')}`} className="flex items-start gap-3 bg-white p-5 rounded-lg hover:shadow-md transition-shadow">
             <Phone size={20} className="text-daami-gold shrink-0 mt-0.5" />
             <div>

@@ -6,11 +6,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   Star, Heart, ShoppingBag, Shield, Truck, RefreshCw,
-  ChevronRight, Minus, Plus, Share2, Check, X, CreditCard, Banknote, AlertCircle, Loader2, ImagePlus, MapPin, MessageCircle
+  ChevronRight, Minus, Plus, Share2, Check, X, CreditCard, Banknote, AlertCircle, Loader2, ImagePlus, MapPin
 } from 'lucide-react';
 import { formatPrice } from '@/data/products';
 import { searchLocations, getDeliveryCharge } from '@/data/delivery';
-import { whatsappLink, whatsappOrderMessage } from '@/data/store';
 import { useCart } from '@/context/CartContext';
 import ProductCard from '@/components/products/ProductCard';
 import toast from 'react-hot-toast';
@@ -488,19 +487,6 @@ export default function ProductDetailPage({ params }) {
     setBuyModalOpen(true);
   };
 
-  const handleWhatsAppOrder = () => {
-    const url = typeof window !== 'undefined' ? window.location.href : '';
-    const message = whatsappOrderMessage({
-      name: product.name,
-      price: product.price,
-      size: selectedSize || undefined,
-      color: selectedColor || undefined,
-      quantity,
-      url,
-    });
-    window.open(whatsappLink(message), '_blank');
-  };
-
   const COLOR_MAP = {
     white: '#f8f8f8', black: '#111111', red: '#dc2626', navy: '#1e3a5f',
     blue: '#3b82f6', green: '#16a34a', gray: '#6b7280', grey: '#6b7280',
@@ -736,14 +722,6 @@ export default function ProductDetailPage({ params }) {
               className="block w-full mt-3 btn-gold text-center py-4 text-sm font-semibold uppercase tracking-wide"
             >
               Buy Now
-            </button>
-
-            {/* WhatsApp Order — order directly by chat, no forms */}
-            <button
-              onClick={handleWhatsAppOrder}
-              className="flex items-center justify-center gap-2.5 w-full mt-3 py-4 text-sm font-semibold uppercase tracking-wide bg-[#25D366] text-white hover:bg-[#1da851] transition-colors"
-            >
-              <MessageCircle size={18} /> Order on WhatsApp
             </button>
 
             {buyError && (

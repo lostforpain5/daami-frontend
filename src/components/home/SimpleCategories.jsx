@@ -6,19 +6,19 @@ import { ArrowRight } from 'lucide-react';
 // Big, beginner-friendly category cards — one click to each collection.
 const CATEGORIES = [
   {
-    label: 'Men T-Shirt',
-    href: '/category/men',
+    label: 'Boy Tshirt',
+    href: '/category/boy-tshirt',
     image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&h=1000&fit=crop',
   },
   {
-    label: 'Women T-Shirt',
-    href: '/category/women',
-    image: 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?w=800&h=1000&fit=crop',
+    label: 'Girl Tshirt',
+    href: '/category/girl-tshirt',
+    image: 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=800&h=1000&fit=crop',
   },
   {
-    label: 'Couple T-Shirt',
-    href: '/category/couple-tshirts',
-    image: '/images/products/0a4949f7-81a9-4367-94fb-24025b2d7c58.jpg',
+    label: 'Couple Tshirt',
+    href: '/category/couple-tshirt',
+    image: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&h=1000&fit=crop',
   },
 ];
 

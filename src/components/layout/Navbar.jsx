@@ -13,11 +13,9 @@ import { useSettings } from '@/context/SettingsContext';
 // ─── Simple, fixed navigation menu ──────────────────────────────────────────
 const NAV_LINKS = [
   { label: 'Home', href: '/' },
-  { label: 'Men T-Shirt', href: '/category/men' },
-  { label: 'Women T-Shirt', href: '/category/women' },
-  { label: 'Couple T-Shirt', href: '/category/couple-tshirts' },
-  { label: 'New Arrivals', href: '/category/new-arrivals' },
-  { label: 'Best Sellers', href: '/category/best-sellers' },
+  { label: 'Boy Tshirt', href: '/category/boy-tshirt' },
+  { label: 'Girl Tshirt', href: '/category/girl-tshirt' },
+  { label: 'Couple Tshirt', href: '/category/couple-tshirt' },
   { label: 'Contact Us', href: '/contact' },
 ];
 
