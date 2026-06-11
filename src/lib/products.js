@@ -22,17 +22,7 @@ export const getAllProducts = unstable_cache(
   { revalidate: 120, tags: ['products'] },
 );
 
-// Couple-tee selector (shared by the homepage server render + carousel fallback).
-export const isCouple = (p) =>
-  p.category === 'couple-tshirts' || /couple/i.test(p.category || '') || p.tags.includes('couple');
-
-export const selectTrendingCouple = (list) => {
-  const couple = list.filter(isCouple);
-  const trendingCouple = couple.filter((p) => p.tags.includes('trending'));
-  let picked =
-    trendingCouple.length >= 3 ? trendingCouple :
-    couple.length >= 3 ? couple :
-    list.filter((p) => p.tags.includes('trending'));
-  if (picked.length < 3) picked = list;
-  return picked.slice(0, 12);
-};
+// Trending carousel = exactly the products the admin tags "trending" (newest first).
+// No fallback — the admin has full control from /admin/trending.
+export const selectTrending = (list) =>
+  list.filter((p) => p.tags.includes('trending')).slice(0, 12);

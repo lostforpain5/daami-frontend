@@ -18,20 +18,8 @@ const parse = (p) => ({
   tags: Array.isArray(p.tags) ? p.tags : JSON.parse(p.tags || '[]'),
 });
 
-// Pick trending couple t-shirts with graceful fallbacks so the rail is never empty.
-const isCouple = (p) =>
-  p.category === 'couple-tshirts' || /couple/i.test(p.category || '') || p.tags.includes('couple');
-
-const selectTrendingCouple = (list) => {
-  const couple = list.filter(isCouple);
-  const trendingCouple = couple.filter((p) => p.tags.includes('trending'));
-  let picked =
-    trendingCouple.length >= 3 ? trendingCouple :
-    couple.length >= 3 ? couple :
-    list.filter((p) => p.tags.includes('trending'));
-  if (picked.length < 3) picked = list;
-  return picked.slice(0, 12);
-};
+// Trending = exactly the products the admin tags "trending" (managed in /admin/trending).
+const selectTrending = (list) => list.filter((p) => p.tags.includes('trending')).slice(0, 12);
 
 // ─── Outer: loads products, then mounts the carousel with a stable item count ──
 export default function TrendingCarousel({ initialItems }) {
@@ -42,7 +30,7 @@ export default function TrendingCarousel({ initialItems }) {
     if (initialItems) return; // server already provided the data
     fetch('/api/products')
       .then((r) => r.json())
-      .then((data) => setItems(selectTrendingCouple((data.products || []).map(parse))))
+      .then((data) => setItems(selectTrending((data.products || []).map(parse))))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [initialItems]);

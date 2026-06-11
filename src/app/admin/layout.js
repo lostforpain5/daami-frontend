@@ -5,13 +5,14 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import {
   LayoutDashboard, Package, ShoppingBag, Users, Tag,
-  Settings, LogOut, Menu, X, ChevronRight, Image
+  Settings, LogOut, Menu, X, ChevronRight, Image, TrendingUp
 } from 'lucide-react';
 import { useState } from 'react';
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/admin/products', label: 'Products', icon: Package },
+  { href: '/admin/trending', label: 'Trending Carousel', icon: TrendingUp },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingBag },
   { href: '/admin/customers', label: 'Customers', icon: Users },
   { href: '/admin/categories', label: 'Categories', icon: Tag },

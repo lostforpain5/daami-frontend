@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth';
 
@@ -42,6 +43,7 @@ export async function PUT(request, { params }) {
     if (body.featured !== undefined) data.featured = body.featured;
 
     const product = await prisma.product.update({ where: { id }, data });
+    revalidateTag('products'); // refresh homepage carousel/grid immediately
     return NextResponse.json({ product: parse(product) });
   } catch (e) {
     console.error(e);
@@ -55,5 +57,6 @@ export async function DELETE(request, { params }) {
 
   const { id } = await params;
   await prisma.product.delete({ where: { id } });
+  revalidateTag('products');
   return NextResponse.json({ success: true });
 }
