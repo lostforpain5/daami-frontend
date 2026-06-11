@@ -176,7 +176,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="bg-daami-cream min-h-screen py-10">
+    <div className="min-h-screen py-10">
       <div className="page-container max-w-5xl">
         {/* Progress */}
         <div className="flex items-center justify-center mb-10">

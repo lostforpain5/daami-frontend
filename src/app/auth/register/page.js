@@ -93,7 +93,7 @@ export default function RegisterPage() {
   const hasGoogleClientId = !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
   return (
-    <div className="min-h-[calc(100vh-180px)] flex items-center justify-center bg-daami-cream px-4 py-16">
+    <div className="min-h-[calc(100vh-180px)] flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex flex-col items-center">

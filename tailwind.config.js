@@ -18,10 +18,30 @@ module.exports = {
           gray: '#6B7280',
           'dark-gray': '#374151',
         },
+        // Premium luxury palette (homepage redesign)
+        luxe: {
+          brown: '#A86C4A',
+          chocolate: '#4A2E20',
+          beige: '#EFE7DC',
+          cream: '#F8F4EE',
+          gold: '#C9A063',
+          heading: '#2D1F16',
+          muted: '#7A7A7A',
+        },
+        // Charcoal dark theme
+        night: {
+          base: '#0E0E10',
+          base2: '#1A1A1D',
+          surface: '#1A1B1F',
+          border: '#2A2B31',
+          text: '#F2F2F2',
+          muted: '#9A9AA2',
+        },
       },
       fontFamily: {
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
         serif: ['Georgia', 'serif'],
+        display: ['var(--font-playfair)', 'Playfair Display', 'Georgia', 'serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',

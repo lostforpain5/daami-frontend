@@ -12,16 +12,17 @@
 }
 
 @layer base {
-  :root {
-    --font-inter: 'Inter', system-ui, sans-serif;
-  }
+  /* --font-inter and --font-playfair are injected by next/font in layout.js */
 
   html {
     scroll-behavior: smooth;
   }
 
   body {
-    @apply bg-white text-daami-black font-sans antialiased;
+    @apply text-night-text font-sans antialiased;
+    background-color: #0E0E10;
+    background-image: linear-gradient(to bottom, #0E0E10 0%, #141417 50%, #1A1A1D 100%);
+    background-attachment: fixed;
   }
 
   * {
@@ -43,7 +44,7 @@
   }
 
   .section-title {
-    @apply text-3xl md:text-4xl font-bold tracking-tight text-daami-black;
+    @apply text-3xl md:text-4xl font-bold tracking-tight text-night-text;
   }
 
   .section-subtitle {
@@ -65,6 +66,53 @@
   .page-container {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
+
+  /* ── Premium luxury homepage helpers ── */
+  .collection-label {
+    @apply text-[11px] font-semibold uppercase;
+    letter-spacing: 4px;
+    color: #C9A063;
+  }
+
+  .luxe-heading {
+    @apply font-display text-night-text;
+  }
+
+  /* Buy Now — gradient luxury button */
+  .btn-luxe {
+    @apply inline-flex items-center justify-center gap-2 text-white font-semibold tracking-wide rounded-[18px] transition-all duration-300;
+    height: 56px;
+    background-image: linear-gradient(135deg, #C48A60, #9C5F3D);
+    box-shadow: 0 12px 28px -8px rgba(156, 95, 61, 0.45);
+  }
+  .btn-luxe:hover {
+    background-image: linear-gradient(135deg, #D49C72, #A96A45);
+    box-shadow: 0 16px 34px -8px rgba(156, 95, 61, 0.55);
+    transform: translateY(-1px);
+  }
+
+  /* Gradient "Buy" button — composes with width/padding/radius utilities */
+  .btn-buy {
+    @apply text-white transition-all duration-300;
+    background-image: linear-gradient(135deg, #C48A60, #9C5F3D);
+  }
+  .btn-buy:hover {
+    background-image: linear-gradient(135deg, #D49C72, #A96A45);
+    box-shadow: 0 10px 24px -8px rgba(156, 95, 61, 0.5);
+  }
+
+  /* Floating premium product card (dark) */
+  .card-luxe {
+    @apply rounded-[24px] overflow-hidden transition-all duration-300;
+    background-color: #1A1B1F;
+    border: 1px solid #2A2B31;
+    box-shadow: 0 12px 40px -16px rgba(0, 0, 0, 0.6);
+  }
+  .card-luxe:hover {
+    border-color: rgba(201, 160, 99, 0.45);
+    box-shadow: 0 26px 54px -18px rgba(0, 0, 0, 0.7);
+    transform: translateY(-6px);
+  }
 }
 
 /* Custom scrollbar */
@@ -72,7 +120,7 @@
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #16161a;
 }
 ::-webkit-scrollbar-thumb {
   background: #C9A84C;

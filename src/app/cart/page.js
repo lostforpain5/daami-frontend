@@ -53,7 +53,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="bg-white py-10 md:py-14">
+    <div className="py-10 md:py-14">
       <div className="page-container">
         <div className="flex items-center justify-between mb-8">
           <h1 className="section-title">Shopping Cart <span className="text-lg font-normal text-daami-gray ml-2">({items.length} item{items.length !== 1 ? 's' : ''})</span></h1>

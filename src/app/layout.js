@@ -1,5 +1,19 @@
 import './globals.css';
+import { Inter, Playfair_Display } from 'next/font/google';
 import { CartProvider } from '@/context/CartContext';
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-inter',
+  display: 'swap',
+});
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+  variable: '--font-playfair',
+  display: 'swap',
+});
 import { AuthProvider } from '@/context/AuthContext';
 import { SettingsProvider } from '@/context/SettingsContext';
 import Navbar from '@/components/layout/Navbar';
@@ -25,15 +39,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body>
         <AuthProvider>
           <SettingsProvider>

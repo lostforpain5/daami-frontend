@@ -53,7 +53,7 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="bg-daami-cream min-h-[60vh] py-12">
+    <div className="min-h-[60vh] py-12">
       <div className="page-container max-w-3xl">
         <div className="flex items-center justify-between mb-6">
           <div>

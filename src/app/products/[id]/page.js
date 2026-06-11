@@ -26,14 +26,14 @@ const parse = (p) => ({
 function Field({ name, label, placeholder, type = 'text', value, onChange, error }) {
   return (
     <div>
-      <label className="block text-xs font-semibold text-daami-black mb-1.5">{label}</label>
+      <label className="block text-xs font-semibold text-night-text mb-1.5">{label}</label>
       <input
         type={type}
         name={name}
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className={`w-full border px-4 py-3 text-sm outline-none transition-colors ${error ? 'border-red-400 bg-red-50 focus:border-red-500' : 'border-gray-200 focus:border-daami-gold'}`}
+        className={`w-full border px-4 py-3 text-sm outline-none transition-colors rounded-lg ${error ? 'border-red-400 bg-red-500/10 text-night-text' : 'border-white/10 bg-[#1C1D21] text-night-text placeholder-night-muted focus:border-luxe-gold'}`}
       />
       {error && (
         <p className="flex items-center gap-1 text-red-500 text-xs mt-1">
@@ -48,26 +48,27 @@ function Field({ name, label, placeholder, type = 'text', value, onChange, error
 function ScreenshotUpload({ screenshot, setScreenshot, screenshotRef, screenshotUploading, error }) {
   return (
     <div>
-      <p className="text-xs font-semibold text-daami-black mb-2">Payment Screenshot *</p>
+      <p className="text-xs font-semibold text-night-text mb-2">Payment Screenshot *</p>
       {!screenshot ? (
         <button
           type="button"
           onClick={() => screenshotRef.current?.click()}
           disabled={screenshotUploading}
-          className={`w-full border-2 border-dashed py-5 px-4 flex flex-col items-center gap-2 transition-colors disabled:opacity-60 ${error ? 'border-red-400 bg-red-50' : 'border-gray-300 hover:border-daami-gold hover:bg-daami-cream/40'}`}
+          className={`w-full rounded-lg border-2 border-dashed py-5 px-4 flex flex-col items-center gap-2 transition-colors disabled:opacity-60 ${error ? 'border-red-400 bg-red-500/10' : 'border-white/15 hover:border-luxe-gold hover:bg-white/5'}`}
         >
-          {screenshotUploading ? <Loader2 size={22} className="animate-spin text-daami-gold" /> : <ImagePlus size={22} className={error ? 'text-red-400' : 'text-daami-gray'} />}
-          <span className={`text-sm font-medium ${error ? 'text-red-500' : 'text-daami-dark-gray'}`}>
+          {screenshotUploading ? <Loader2 size={22} className="animate-spin text-luxe-gold" /> : <ImagePlus size={22} className={error ? 'text-red-400' : 'text-night-muted'} />}
+          <span className={`text-sm font-medium ${error ? 'text-red-500' : 'text-night-text'}`}>
             {screenshotUploading ? 'Uploading...' : 'Please Upload your payment screenshot'}
           </span>
-          <span className="text-[11px] text-daami-gray">Tap to choose image from your phone or gallery</span>
+          <span className="text-[11px] text-night-muted">Tap to choose image from your phone or gallery</span>
         </button>
       ) : (
-        <div className="border border-green-200 bg-green-50 p-3">
+        <div className="border border-green-500/25 bg-green-500/10 p-3 rounded-lg">
           <div className="flex items-center gap-3">
-            <img src={screenshot} alt="Payment screenshot" className="w-16 h-16 object-cover border border-gray-200 rounded" />
+            {/* eslint-disable-next-line @next/next/no-img-element -- dynamic blob/upload URL */}
+            <img src={screenshot} alt="Payment screenshot" className="w-16 h-16 object-cover border border-white/10 rounded" />
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-green-700 flex items-center gap-1"><Check size={12} /> Screenshot uploaded</p>
+              <p className="text-xs font-semibold text-green-400 flex items-center gap-1"><Check size={12} /> Screenshot uploaded</p>
               <button type="button" onClick={() => setScreenshot('')} className="text-[11px] text-red-500 hover:underline mt-1">Remove & re-upload</button>
             </div>
           </div>
@@ -84,9 +85,12 @@ function ScreenshotUpload({ screenshot, setScreenshot, screenshotRef, screenshot
 function BuyNowModal({ product, selectedSize, selectedColor, quantity, onClose }) {
   // step: details | payment | done
   const [step, setStep] = useState('details');
-  const deliveryType = 'home'; // simplified: home delivery only
+  const [deliveryType, setDeliveryType] = useState('home'); // home | courier
   const [paymentMethod, setPaymentMethod] = useState(''); // online | cod
-  const [form, setForm] = useState({ name: '', phone: '', address: '', location: '' });
+  const [form, setForm] = useState({ name: '', phone: '', address: '', location: '', version: 'Couple Tshirt', color: 'Black' });
+  const TSHIRT_VERSIONS = ['Couple Tshirt', 'Boy Single Tshirt', 'Girl Single Tshirt'];
+  // Single tees have fixed prices; Couple uses the product's listed price.
+  const VERSION_PRICE = { 'Boy Single Tshirt': 850, 'Girl Single Tshirt': 750 };
   const [locationQuery, setLocationQuery] = useState('');
   const [locationSuggestions, setLocationSuggestions] = useState([]);
   const [errors, setErrors] = useState({});
@@ -96,7 +100,8 @@ function BuyNowModal({ product, selectedSize, selectedColor, quantity, onClose }
   const [screenshotUploading, setScreenshotUploading] = useState(false);
   const screenshotRef = useRef(null);
 
-  const productTotal = product.price * quantity;
+  const unitPrice = VERSION_PRICE[form.version] ?? product.price;
+  const productTotal = unitPrice * quantity;
   const deliveryCharge = form.location ? getDeliveryCharge(form.location, deliveryType) : 0;
   const grandTotal = productTotal + deliveryCharge;
 
@@ -149,6 +154,7 @@ function BuyNowModal({ product, selectedSize, selectedColor, quantity, onClose }
 
   const validateDetails = () => {
     const e = {};
+    if (!form.version) e.version = 'Please choose Boy, Girl or Couple Tshirt';
     if (!form.name.trim()) e.name = 'Name is required';
     if (!form.phone.trim()) e.phone = 'Phone is required';
     if (!form.location) e.location = 'Please select your location';
@@ -173,18 +179,19 @@ function BuyNowModal({ product, selectedSize, selectedColor, quantity, onClose }
         name: form.name,
         phone: form.phone,
         location: form.location,
-        deliveryType: 'Home Delivery',
+        deliveryType: deliveryType === 'home' ? 'Home Delivery' : 'Courier Branch',
         address: form.address,
+        version: form.version,
       };
 
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: [{ productId: product.id, name: product.name, price: product.price, quantity, size: selectedSize || 'Freesize', color: selectedColor || '' }],
+          items: [{ productId: product.id, name: `${product.name} — ${form.version}`, price: unitPrice, quantity, size: selectedSize || 'Freesize', color: form.color }],
           shipping: deliveryCharge,
           address: addressData,
-          notes: `${paymentMethod === 'online' ? 'Online Payment (QR)' : 'Cash On Delivery'} | Screenshot: ${screenshot}`,
+          notes: `Version: ${form.version} | ${paymentMethod === 'online' ? 'Online Payment (QR)' : 'Cash On Delivery'} | Screenshot: ${screenshot}`,
           paymentMethod,
         }),
       });
@@ -196,59 +203,59 @@ function BuyNowModal({ product, selectedSize, selectedColor, quantity, onClose }
 
   // Mini order summary bar
   const Summary = () => (
-    <div className="bg-daami-cream border border-daami-gold/20 px-4 py-3 flex items-center gap-3 mb-6">
-      <div className="relative w-12 h-14 shrink-0 overflow-hidden bg-white">
+    <div className="bg-[#1C1D21] border border-white/10 px-4 py-3 flex items-center gap-3 mb-6 rounded-lg">
+      <div className="relative w-12 h-14 shrink-0 overflow-hidden rounded bg-night-surface">
         <Image src={product.images[0]} alt={product.name} fill className="object-cover" sizes="48px" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-semibold text-daami-black truncate">{product.name}</p>
-        <p className="text-[11px] text-daami-gray mt-0.5">
+        <p className="text-xs font-semibold text-night-text truncate">{product.name}</p>
+        <p className="text-[11px] text-night-muted mt-0.5">
           {selectedSize && `Size: ${selectedSize}`}{selectedColor && ` · ${selectedColor}`}{quantity > 1 && ` · Qty: ${quantity}`}
         </p>
       </div>
       <div className="text-right shrink-0">
-        <p className="text-sm font-bold text-daami-gold">{formatPrice(productTotal)}</p>
-        {deliveryCharge > 0 && <p className="text-[10px] text-daami-gray">+{formatPrice(deliveryCharge)} delivery</p>}
+        <p className="text-sm font-bold text-luxe-gold">{formatPrice(productTotal)}</p>
+        {deliveryCharge > 0 && <p className="text-[10px] text-night-muted">+{formatPrice(deliveryCharge)} delivery</p>}
       </div>
     </div>
   );
 
   // Price breakdown box
   const PriceBox = () => (
-    <div className="bg-gray-50 border border-gray-200 px-4 py-3 space-y-1.5 text-xs">
-      <div className="flex justify-between text-daami-gray">
+    <div className="bg-[#1C1D21] border border-white/10 px-4 py-3 space-y-1.5 text-xs rounded-lg">
+      <div className="flex justify-between text-night-muted">
         <span>Product × {quantity}</span>
         <span>{formatPrice(productTotal)}</span>
       </div>
-      <div className="flex justify-between text-daami-gray">
+      <div className="flex justify-between text-night-muted">
         <span>Delivery charge</span>
         <span>{formatPrice(deliveryCharge)}</span>
       </div>
-      <div className="flex justify-between font-bold text-daami-black border-t border-gray-200 pt-1.5">
+      <div className="flex justify-between font-bold text-night-text border-t border-white/10 pt-1.5">
         <span>Total</span>
-        <span className="text-daami-gold">{formatPrice(grandTotal)}</span>
+        <span className="text-luxe-gold">{formatPrice(grandTotal)}</span>
       </div>
     </div>
   );
 
   // ── Success ──
   if (step === 'done') return (
-    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white w-full max-w-sm p-8 text-center shadow-2xl" onClick={e => e.stopPropagation()}>
-        <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-          <Check size={30} className="text-green-600" />
+    <div className="fixed inset-0 bg-black/70 z-[60] flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-[#141417] border border-white/10 w-full max-w-sm p-8 text-center shadow-2xl rounded-2xl" onClick={e => e.stopPropagation()}>
+        <div className="w-16 h-16 rounded-full bg-green-500/15 flex items-center justify-center mx-auto mb-4">
+          <Check size={30} className="text-green-400" />
         </div>
-        <h3 className="text-xl font-bold text-daami-black">Order Placed!</h3>
-        <p className="text-sm text-daami-gray mt-2">Thank you! Your order is confirmed.</p>
-        <p className="text-xs text-daami-gray mt-1">We'll contact you at {form.phone} soon.</p>
-        <div className="bg-daami-cream p-4 mt-4 text-left text-xs space-y-1.5 rounded">
-          <div className="flex justify-between text-daami-gray"><span>Product</span><span>{formatPrice(productTotal)}</span></div>
-          <div className="flex justify-between text-daami-gray"><span>Delivery</span><span>{formatPrice(deliveryCharge)}</span></div>
-          <div className="flex justify-between font-bold text-daami-black border-t border-daami-gold/20 pt-1.5">
-            <span>Total Paid</span><span className="text-daami-gold">{formatPrice(grandTotal)}</span>
+        <h3 className="text-xl font-bold text-night-text">Order Placed!</h3>
+        <p className="text-sm text-night-muted mt-2">Thank you! Your order is confirmed.</p>
+        <p className="text-xs text-night-muted mt-1">We'll contact you at {form.phone} soon.</p>
+        <div className="bg-[#1C1D21] border border-white/10 p-4 mt-4 text-left text-xs space-y-1.5 rounded-lg">
+          <div className="flex justify-between text-night-muted"><span>Product</span><span>{formatPrice(productTotal)}</span></div>
+          <div className="flex justify-between text-night-muted"><span>Delivery</span><span>{formatPrice(deliveryCharge)}</span></div>
+          <div className="flex justify-between font-bold text-night-text border-t border-white/10 pt-1.5">
+            <span>Total Paid</span><span className="text-luxe-gold">{formatPrice(grandTotal)}</span>
           </div>
         </div>
-        <button onClick={onClose} className="btn-gold w-full mt-6">Continue Shopping</button>
+        <button onClick={onClose} className="btn-buy w-full mt-6 py-3 rounded-xl text-sm font-bold uppercase tracking-wide">Continue Shopping</button>
       </div>
     </div>
   );
@@ -259,65 +266,172 @@ function BuyNowModal({ product, selectedSize, selectedColor, quantity, onClose }
   }[step];
 
   return (
-    <div className="fixed inset-0 bg-black/70 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      <div className="bg-white w-full sm:max-w-md max-h-[92vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/70 z-[60] flex justify-center" onClick={onClose}>
+      <div className="bg-[#141417] w-full sm:max-w-md h-full overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
         <input ref={screenshotRef} type="file" accept="image/*" onChange={handleScreenshotUpload} className="hidden" />
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
-          <h2 className="text-base font-bold text-daami-black">{headerTitle}</h2>
-          <button onClick={onClose} className="p-1.5 text-daami-gray hover:text-daami-black rounded"><X size={20} /></button>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 sticky top-0 bg-[#141417] z-10">
+          <h2 className="text-base font-bold text-night-text">{headerTitle}</h2>
+          <button onClick={onClose} className="p-1.5 text-night-muted hover:text-night-text rounded"><X size={20} /></button>
         </div>
 
         <div className="px-6 py-5">
           <Summary />
 
+          {/* Freesize details */}
+          {selectedSize === 'Freesize' && (
+            <div className="-mt-3 mb-6 overflow-hidden rounded-xl border border-luxe-gold/25 bg-[#1C1D21]">
+              <div className="bg-gradient-to-r from-[#9C5F3D] to-[#C9A063] px-4 py-1.5">
+                <p className="text-xs font-bold uppercase tracking-wider text-white">Freesize</p>
+              </div>
+              <div className="px-4 py-3">
+                {form.version === 'Girl Single Tshirt' ? (
+                  <p className="text-sm font-semibold text-night-text leading-snug">
+                    Stretchable t-shirt — <span className="text-luxe-gold">any height &amp; weight</span> can wear it perfectly. One size fits all! 💛
+                  </p>
+                ) : (
+                  <div className="flex items-stretch gap-3">
+                    <div className="flex-1 flex items-center gap-2">
+                      <span className="text-xl">📐</span>
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wide text-night-muted font-semibold">Height</p>
+                        <p className="text-sm font-bold text-night-text">5ft – 5ft 8in</p>
+                      </div>
+                    </div>
+                    <div className="w-px bg-white/10" />
+                    <div className="flex-1 flex items-center gap-2">
+                      <span className="text-xl">⚖️</span>
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wide text-night-muted font-semibold">Weight</p>
+                        <p className="text-sm font-bold text-night-text">50 – 85 kg</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* ── Step 1: Delivery Details ── */}
           {step === 'details' && (
             <div className="space-y-4">
+              {/* Choose which version to order */}
+              <div>
+                <label className="block text-xs font-semibold text-night-text mb-1.5">Choose Your T-Shirt *</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {TSHIRT_VERSIONS.map(v => (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => { setForm(f => ({ ...f, version: v })); if (errors.version) setErrors(p => ({ ...p, version: '' })); }}
+                      className={`py-2.5 px-1 text-xs font-bold border-2 rounded-lg transition-all text-center leading-tight ${
+                        form.version === v
+                          ? 'border-transparent text-white shadow-md scale-[1.03] bg-gradient-to-br from-[#9C5F3D] to-[#C9A063]'
+                          : 'border-white/12 bg-[#1C1D21] text-night-text hover:border-luxe-gold/60'
+                      }`}
+                    >
+                      {v}
+                    </button>
+                  ))}
+                </div>
+                {errors.version && <p className="flex items-center gap-1 text-red-500 text-xs mt-1"><AlertCircle size={11} /> {errors.version}</p>}
+              </div>
+
+              {/* Color — dot selection */}
+              <div>
+                <label className="block text-xs font-semibold text-night-text mb-1.5">Color *</label>
+                <div className="flex items-center gap-5">
+                  {[{ name: 'Black', hex: '#111111' }, { name: 'White', hex: '#FFFFFF' }].map(c => {
+                    const selected = form.color === c.name;
+                    return (
+                      <button
+                        key={c.name}
+                        type="button"
+                        onClick={() => setForm(f => ({ ...f, color: c.name }))}
+                        className="flex items-center gap-2"
+                      >
+                        <span
+                          className={`w-7 h-7 rounded-full flex items-center justify-center border transition-all ${selected ? 'border-luxe-gold ring-2 ring-luxe-gold/40' : 'border-white/25'}`}
+                          style={{ backgroundColor: c.hex }}
+                        >
+                          {selected && <Check size={14} className={c.name === 'White' ? 'text-luxe-brown' : 'text-white'} />}
+                        </span>
+                        <span className={`text-xs font-semibold ${selected ? 'text-night-text' : 'text-night-muted'}`}>{c.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               <Field name="name" label="Full Name *" placeholder="Your full name" value={form.name} onChange={handleChange} error={errors.name} />
               <Field name="phone" label="Phone Number *" placeholder="98XXXXXXXX" type="tel" value={form.phone} onChange={handleChange} error={errors.phone} />
 
               {/* Searchable location input */}
               <div className="relative">
-                <label className="block text-xs font-semibold text-daami-black mb-1.5">Location *</label>
+                <label className="block text-xs font-semibold text-night-text mb-1.5">Location *</label>
                 <div className="relative">
-                  <MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-daami-gray pointer-events-none" />
+                  <MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-night-muted pointer-events-none" />
                   <input
                     type="text"
                     value={locationQuery}
                     onChange={e => handleLocationSearch(e.target.value)}
                     placeholder="Type your city or area..."
-                    className={`w-full border pl-9 pr-4 py-3 text-sm outline-none transition-colors ${errors.location ? 'border-red-400 bg-red-50' : 'border-gray-200 focus:border-daami-gold'}`}
+                    className={`w-full border pl-9 pr-4 py-3 text-sm outline-none transition-colors rounded-lg ${errors.location ? 'border-red-400 bg-red-500/10 text-night-text' : 'border-white/10 bg-[#1C1D21] text-night-text placeholder-night-muted focus:border-luxe-gold'}`}
                   />
                 </div>
                 {errors.location && <p className="flex items-center gap-1 text-red-500 text-xs mt-1"><AlertCircle size={11} /> {errors.location}</p>}
                 {locationSuggestions.length > 0 && (
-                  <div className="absolute z-10 left-0 right-0 bg-white border border-gray-200 shadow-lg max-h-48 overflow-y-auto mt-1">
+                  <div className="absolute z-10 left-0 right-0 bg-[#1C1D21] border border-white/10 shadow-lg max-h-48 overflow-y-auto mt-1 rounded-lg">
                     {locationSuggestions.map(loc => (
                       <button
                         key={loc.name}
                         type="button"
                         onClick={() => selectLocation(loc)}
-                        className="w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-daami-cream transition-colors text-left"
+                        className="w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-white/5 transition-colors text-left"
                       >
-                        <span className="font-medium text-daami-black">{loc.name}</span>
-                        <span className="text-xs text-daami-gray shrink-0 ml-2">NPR {loc.home}</span>
+                        <span className="font-medium text-night-text">{loc.name}</span>
+                        <span className="text-xs text-night-muted shrink-0 ml-2">NPR {loc.home}</span>
                       </button>
                     ))}
                   </div>
                 )}
               </div>
 
-              {/* Delivery charge banner — shows after location selected */}
+              {/* Estimated delivery time */}
+              <div className="flex items-center gap-2 text-xs font-medium text-night-text">
+                <Truck size={14} className="text-luxe-gold" />
+                Delivery Time: <span className="font-bold">2-3 days</span>
+              </div>
+
+              {/* Delivery options — each shows its own rate for the selected location */}
               {form.location && (
                 <>
-                  <div className="flex items-center justify-between bg-daami-cream border border-daami-gold/30 px-4 py-2.5">
-                    <span className="text-xs text-daami-gray flex items-center gap-1.5">
-                      <MapPin size={11} />
-                      {form.location} · Home Delivery
-                    </span>
-                    <span className="text-sm font-bold text-daami-gold">NPR {deliveryCharge}</span>
+                  <div>
+                    <label className="block text-xs font-semibold text-night-text mb-1.5">Delivery Option *</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { id: 'home', label: 'Home Delivery', sub: 'To your address' },
+                        { id: 'courier', label: 'Courier Branch', sub: 'Pickup from branch' },
+                      ].map(opt => {
+                        const charge = getDeliveryCharge(form.location, opt.id);
+                        const selected = deliveryType === opt.id;
+                        return (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            onClick={() => setDeliveryType(opt.id)}
+                            className={`flex flex-col items-start gap-0.5 p-3 border-2 rounded-lg text-left transition-all ${
+                              selected ? 'border-luxe-gold bg-luxe-gold/10' : 'border-white/12 hover:border-white/25'
+                            }`}
+                          >
+                            <span className="text-sm font-semibold text-night-text">{opt.label}</span>
+                            <span className="text-[11px] text-night-muted">{opt.sub}</span>
+                            <span className="text-sm font-bold text-luxe-gold mt-0.5">NPR {charge}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                   <PriceBox />
                 </>
@@ -327,8 +441,8 @@ function BuyNowModal({ product, selectedSize, selectedColor, quantity, onClose }
               <Field name="address" label="Full Address *" placeholder="Street, Tole, Landmark" value={form.address} onChange={handleChange} error={errors.address} />
 
               <div className="flex gap-3 pt-1">
-                <button onClick={onClose} className="btn-secondary px-5">Cancel</button>
-                <button onClick={() => { if (validateDetails()) setStep('payment'); }} className="btn-gold flex-1">Continue to Payment</button>
+                <button onClick={onClose} className="px-5 rounded-lg border border-white/15 text-night-text text-sm font-medium uppercase tracking-wide hover:bg-white/5 transition-colors">Cancel</button>
+                <button onClick={() => { if (validateDetails()) setStep('payment'); }} className="btn-buy flex-1 py-3 rounded-lg text-sm font-semibold uppercase tracking-wide">Continue to Payment</button>
               </div>
             </div>
           )}
@@ -337,29 +451,30 @@ function BuyNowModal({ product, selectedSize, selectedColor, quantity, onClose }
           {step === 'payment' && (
             <div className="space-y-5">
               {/* QR */}
-              <div className="flex flex-col items-center bg-gray-50 border border-gray-200 p-5">
-                <p className="text-xs font-semibold uppercase tracking-wider text-daami-gray mb-3">Scan to Pay</p>
+              <div className="flex flex-col items-center bg-[#1C1D21] border border-white/10 p-5 rounded-lg">
+                <p className="text-xs font-semibold uppercase tracking-wider text-night-muted mb-3">Scan to Pay</p>
                 {qrCode ? (
-                  <div className="bg-white p-3 border border-gray-200 shadow-sm">
+                  <div className="bg-white p-3 rounded-lg shadow-sm">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- admin-set QR URL */}
                     <img src={qrCode} alt="Payment QR" width={180} height={180} className="block object-contain" style={{ width: 180, height: 180 }} />
                   </div>
                 ) : (
-                  <div className="w-[180px] h-[180px] bg-white border border-gray-200 flex items-center justify-center text-center p-4">
-                    <p className="text-xs text-daami-gray">QR code not set up yet. Contact the store.</p>
+                  <div className="w-[180px] h-[180px] bg-night-base border border-white/10 rounded-lg flex items-center justify-center text-center p-4">
+                    <p className="text-xs text-night-muted">QR code not set up yet. Contact the store.</p>
                   </div>
                 )}
                 <div className="mt-3 text-center space-y-0.5">
-                  <p className="text-xs text-daami-gray">
-                    Product <span className="font-semibold text-daami-black">{formatPrice(productTotal)}</span>
-                    {' + '}Delivery <span className="font-semibold text-daami-black">{formatPrice(deliveryCharge)}</span>
+                  <p className="text-xs text-night-muted">
+                    Product <span className="font-semibold text-night-text">{formatPrice(productTotal)}</span>
+                    {' + '}Delivery <span className="font-semibold text-night-text">{formatPrice(deliveryCharge)}</span>
                   </p>
-                  <p className="text-sm font-bold text-daami-gold">Total: {formatPrice(grandTotal)}</p>
+                  <p className="text-sm font-bold text-luxe-gold">Total: {formatPrice(grandTotal)}</p>
                 </div>
               </div>
 
               {/* Payment method select */}
               <div className="space-y-2">
-                <p className="text-xs font-semibold text-daami-black">Payment Method *</p>
+                <p className="text-xs font-semibold text-night-text">Payment Method *</p>
                 {[
                   { id: 'online', label: 'Online Payment (QR)', sub: 'Pay via eSewa / Khalti / Bank transfer', icon: CreditCard },
                   { id: 'cod', label: 'Cash On Delivery', sub: 'Delivery charge should pay', icon: Banknote },
@@ -367,14 +482,14 @@ function BuyNowModal({ product, selectedSize, selectedColor, quantity, onClose }
                   <button
                     key={m.id}
                     onClick={() => { setPaymentMethod(m.id); setErrors(p => ({ ...p, payment: '' })); }}
-                    className={`w-full flex items-center gap-3 p-3 border-2 transition-all text-left ${paymentMethod === m.id ? 'border-daami-gold bg-daami-cream' : 'border-gray-200 hover:border-gray-300'}`}
+                    className={`w-full flex items-center gap-3 p-3 border-2 rounded-lg transition-all text-left text-night-text ${paymentMethod === m.id ? 'border-luxe-gold bg-luxe-gold/10' : 'border-white/12 hover:border-white/25'}`}
                   >
-                    <m.icon size={16} className="text-daami-gold shrink-0" />
+                    <m.icon size={16} className="text-luxe-gold shrink-0" />
                     <div className="flex-1">
                       <span className="text-sm font-medium block">{m.label}</span>
-                      <span className="text-[11px] text-daami-gray">{m.sub}</span>
+                      <span className="text-[11px] text-night-muted">{m.sub}</span>
                     </div>
-                    {paymentMethod === m.id && <Check size={14} className="text-daami-gold shrink-0" />}
+                    {paymentMethod === m.id && <Check size={14} className="text-luxe-gold shrink-0" />}
                   </button>
                 ))}
                 {errors.payment && <p className="flex items-center gap-1 text-red-500 text-xs"><AlertCircle size={11} /> {errors.payment}</p>}
@@ -389,8 +504,8 @@ function BuyNowModal({ product, selectedSize, selectedColor, quantity, onClose }
               />
 
               <div className="flex gap-3 pt-1">
-                <button onClick={() => setStep('details')} className="btn-secondary px-5">Back</button>
-                <button onClick={handleSubmit} disabled={placing} className="btn-gold flex-1 flex items-center justify-center gap-2 disabled:opacity-60">
+                <button onClick={() => setStep('details')} className="px-5 rounded-lg border border-white/15 text-night-text text-sm font-medium uppercase tracking-wide hover:bg-white/5 transition-colors">Back</button>
+                <button onClick={handleSubmit} disabled={placing} className="btn-buy flex-1 py-3 rounded-lg text-sm font-semibold uppercase tracking-wide flex items-center justify-center gap-2 disabled:opacity-60">
                   {placing ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
                   {placing ? 'Confirming...' : `Confirm · ${formatPrice(grandTotal)}`}
                 </button>
@@ -431,6 +546,9 @@ export default function ProductDetailPage({ params }) {
         const p = parse(data.product);
         setProduct(p);
         setSelectedColor(p.colors[0] || '');
+        // Only Freesize is offered site-wide — drop XL and auto-select the lone size.
+        const sizes = (p.sizes || []).filter(s => s !== 'XL');
+        setSelectedSize(sizes.length === 1 ? sizes[0] : '');
         setSelectedImage(0);
       })
       .finally(() => setLoading(false));
@@ -444,6 +562,19 @@ export default function ProductDetailPage({ params }) {
         const list = (data.products || []).filter(p => p.id !== product.id).slice(0, 4).map(parse);
         setRelated(list);
       });
+  }, [product]);
+
+  // Deep-link: "?order=1" (e.g. Place Order in the homepage carousel) opens the
+  // delivery details panel directly, defaulting size/colour so checkout is one tap.
+  useEffect(() => {
+    if (!product) return;
+    const wantsOrder = new URLSearchParams(window.location.search).get('order') === '1';
+    if (!wantsOrder) return;
+    const sizes = (product.sizes || []).filter(s => s !== 'XL');
+    setSelectedSize(prev => prev || sizes[Math.floor(sizes.length / 2)] || 'Freesize');
+    setSelectedColor(prev => prev || product.colors[0] || '');
+    setBuyModalOpen(true);
+    window.history.replaceState({}, '', `/products/${product.id}`); // clean the URL so refresh won't reopen
   }, [product]);
 
   if (loading) return (
@@ -500,17 +631,17 @@ export default function ProductDetailPage({ params }) {
   const getColorHex = (name) => COLOR_MAP[name.toLowerCase()] || null;
 
   return (
-    <div className="bg-white">
+    <div>
       {/* Breadcrumb */}
       <div className="page-container py-4">
-        <nav className="flex items-center gap-2 text-xs text-daami-gray">
+        <nav className="flex items-center gap-2 text-xs text-night-muted">
           <Link href="/" className="hover:text-daami-gold transition-colors">Home</Link>
           <ChevronRight size={12} />
           <Link href="/products" className="hover:text-daami-gold transition-colors">Products</Link>
           <ChevronRight size={12} />
           <Link href={`/category/${product.category}`} className="hover:text-daami-gold transition-colors capitalize">{product.category}</Link>
           <ChevronRight size={12} />
-          <span className="text-daami-black font-medium truncate max-w-[200px]">{product.name}</span>
+          <span className="text-night-text font-medium truncate max-w-[200px]">{product.name}</span>
         </nav>
       </div>
 
@@ -531,7 +662,7 @@ export default function ProductDetailPage({ params }) {
               ))}
             </div>
 
-            <div className="flex-1 relative aspect-[3/4] overflow-hidden bg-daami-cream">
+            <div className="flex-1 relative aspect-[3/4] overflow-hidden bg-night-surface">
               <Image
                 src={product.images[selectedImage] || product.images[0]}
                 alt={`${product.name} — ${selectedColor}`}
@@ -566,35 +697,35 @@ export default function ProductDetailPage({ params }) {
 
           {/* ── Details ── */}
           <div>
-            <p className="text-xs uppercase tracking-widest text-daami-gray font-medium capitalize">{product.category}</p>
-            <h1 className="text-2xl md:text-3xl font-bold text-daami-black mt-1 leading-tight">{product.name}</h1>
+            <p className="text-xs uppercase tracking-widest text-night-muted font-medium capitalize">{product.category}</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-night-text mt-1 leading-tight">{product.name}</h1>
 
             <div className="flex items-center gap-3 mt-3">
               <div className="flex items-center gap-0.5">
                 {[1,2,3,4,5].map(s => (
-                  <Star key={s} size={14} className={s <= Math.round(product.rating) ? 'text-daami-gold fill-current' : 'text-gray-200'} />
+                  <Star key={s} size={14} className={s <= Math.round(product.rating) ? 'text-luxe-gold fill-current' : 'text-white/15'} />
                 ))}
               </div>
-              <span className="text-sm text-daami-gray">{product.rating} ({product.reviews} reviews)</span>
+              <span className="text-sm text-night-muted">{product.rating} ({product.reviews} reviews)</span>
             </div>
 
             <div className="flex items-baseline gap-3 mt-4">
-              <span className="text-3xl font-bold text-daami-black">{formatPrice(product.price)}</span>
+              <span className="text-3xl font-bold text-night-text">{formatPrice(product.price)}</span>
               {product.originalPrice && (
                 <>
-                  <span className="text-lg text-daami-gray line-through">{formatPrice(product.originalPrice)}</span>
-                  <span className="text-sm font-semibold text-red-500 bg-red-50 px-2 py-0.5">-{discount}% OFF</span>
+                  <span className="text-lg text-night-muted line-through">{formatPrice(product.originalPrice)}</span>
+                  <span className="text-sm font-semibold text-red-400 bg-red-500/15 px-2 py-0.5">-{discount}% OFF</span>
                 </>
               )}
             </div>
 
-            <p className="text-daami-dark-gray text-sm leading-relaxed mt-5">{product.description}</p>
+            <p className="text-night-muted text-sm leading-relaxed mt-5">{product.description}</p>
 
             {/* ── Color Selection ── */}
             {product.colors.length > 0 && (
               <div className="mt-6">
-                <p className="text-sm font-semibold text-daami-black mb-3">
-                  Color: <span className="font-normal text-daami-gray">{selectedColor}</span>
+                <p className="text-sm font-semibold text-night-text mb-3">
+                  Color: <span className="font-normal text-night-muted">{selectedColor}</span>
                 </p>
                 <div className="flex flex-wrap gap-2.5">
                   {product.colors.map((color, i) => {
@@ -607,13 +738,13 @@ export default function ProductDetailPage({ params }) {
                         title={color}
                         className={`group relative flex items-center gap-2 px-3 py-2 border-2 text-xs font-medium transition-all duration-200 ${
                           isSelected
-                            ? 'border-daami-gold bg-daami-gold/10 text-daami-black'
-                            : 'border-gray-200 hover:border-daami-gold text-daami-dark-gray'
+                            ? 'border-luxe-gold bg-luxe-gold/10 text-night-text'
+                            : 'border-white/15 hover:border-luxe-gold text-night-muted'
                         }`}
                       >
                         {hex && (
                           <span
-                            className={`w-4 h-4 rounded-full border inline-block shrink-0 ${hex === '#f8f8f8' ? 'border-gray-300' : 'border-transparent'}`}
+                            className={`w-4 h-4 rounded-full border inline-block shrink-0 ${hex === '#f8f8f8' ? 'border-white/20' : 'border-transparent'}`}
                             style={{ backgroundColor: hex }}
                           />
                         )}
@@ -628,7 +759,7 @@ export default function ProductDetailPage({ params }) {
                   })}
                 </div>
                 {product.images.length > 1 && (
-                  <p className="text-[10px] text-daami-gray mt-2">● Each color has its own photo — click to preview</p>
+                  <p className="text-[10px] text-night-muted mt-2">● Each color has its own photo — click to preview</p>
                 )}
               </div>
             )}
@@ -636,23 +767,23 @@ export default function ProductDetailPage({ params }) {
             {/* ── Size Selection ── */}
             <div className="mt-5">
               <div className="flex items-center justify-between mb-2.5">
-                <p className={`text-sm font-semibold ${sizeError ? 'text-red-500' : 'text-daami-black'}`}>
+                <p className={`text-sm font-semibold ${sizeError ? 'text-red-500' : 'text-night-text'}`}>
                   {sizeError ? '* Please select a size' : 'Size'}
-                  {selectedSize && <span className="font-normal text-daami-gray">: {selectedSize}</span>}
+                  {selectedSize && <span className="font-normal text-night-muted">: {selectedSize}</span>}
                 </p>
                 <Link href="#" className="text-xs text-daami-gold underline underline-offset-2">Size Guide</Link>
               </div>
               <div className="flex flex-wrap gap-2">
-                {product.sizes.map(size => (
+                {product.sizes.filter(s => s !== 'XL').map(size => (
                   <button
                     key={size}
                     onClick={() => { setSelectedSize(size); setSizeError(false); setBuyError(''); }}
                     className={`min-w-[48px] px-3 py-2.5 text-xs font-medium border-2 transition-all duration-200 ${
                       selectedSize === size
-                        ? 'border-daami-black bg-daami-black text-white'
+                        ? 'border-luxe-gold bg-luxe-gold/15 text-night-text'
                         : sizeError
-                        ? 'border-red-300 hover:border-red-500 text-daami-dark-gray'
-                        : 'border-gray-200 hover:border-daami-black text-daami-dark-gray'
+                        ? 'border-red-300 hover:border-red-500 text-night-muted'
+                        : 'border-white/15 hover:border-luxe-gold text-night-muted'
                     }`}
                   >
                     {size}
@@ -661,22 +792,12 @@ export default function ProductDetailPage({ params }) {
               </div>
 
               {selectedSize === 'Freesize' && (
-                <div className="mt-3 flex items-start gap-2.5 bg-daami-cream border border-daami-gold/30 px-4 py-3">
+                <div className="mt-3 flex items-start gap-2.5 bg-[#1C1D21] border border-luxe-gold/30 rounded-lg px-4 py-3">
                   <span className="text-base leading-none mt-0.5">📏</span>
-                  <div className="text-xs text-daami-dark-gray leading-relaxed">
-                    <p className="font-semibold text-daami-black mb-0.5">Freesize — Fit Guide</p>
+                  <div className="text-xs text-night-muted leading-relaxed">
+                    <p className="font-semibold text-night-text mb-0.5">Freesize — Fit Guide</p>
                     <p>⚖️ <span className="font-medium">Weight:</span> 48 kg to 80 kg</p>
                     <p>📐 <span className="font-medium">Height:</span> 5 ft to 5&apos;7&quot;</p>
-                  </div>
-                </div>
-              )}
-              {selectedSize === 'XL' && (
-                <div className="mt-3 flex items-start gap-2.5 bg-daami-cream border border-daami-gold/30 px-4 py-3">
-                  <span className="text-base leading-none mt-0.5">📏</span>
-                  <div className="text-xs text-daami-dark-gray leading-relaxed">
-                    <p className="font-semibold text-daami-black mb-0.5">XL — Fit Guide</p>
-                    <p>⚖️ <span className="font-medium">Weight:</span> 70 kg to 100 kg</p>
-                    <p>📐 <span className="font-medium">Height:</span> 5&apos;8&quot; to 6 ft</p>
                   </div>
                 </div>
               )}
@@ -684,16 +805,16 @@ export default function ProductDetailPage({ params }) {
 
             {/* ── Quantity ── */}
             <div className="flex items-center gap-4 mt-6">
-              <div className="flex items-center border-2 border-gray-200">
-                <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="w-10 h-10 flex items-center justify-center hover:bg-daami-cream transition-colors">
+              <div className="flex items-center border-2 border-white/15">
+                <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="w-10 h-10 flex items-center justify-center hover:bg-white/5 transition-colors">
                   <Minus size={14} />
                 </button>
                 <span className="w-12 text-center text-sm font-semibold">{quantity}</span>
-                <button onClick={() => setQuantity(q => q + 1)} className="w-10 h-10 flex items-center justify-center hover:bg-daami-cream transition-colors">
+                <button onClick={() => setQuantity(q => q + 1)} className="w-10 h-10 flex items-center justify-center hover:bg-white/5 transition-colors">
                   <Plus size={14} />
                 </button>
               </div>
-              <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${product.inStock ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+              <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${product.inStock ? 'bg-green-500/15 text-green-400' : 'bg-red-500/15 text-red-400'}`}>
                 {product.inStock ? 'In Stock' : 'Out of Stock'}
               </span>
             </div>
@@ -703,23 +824,23 @@ export default function ProductDetailPage({ params }) {
               <button
                 onClick={handleAddToCart}
                 className={`flex-1 flex items-center justify-center gap-2.5 py-4 text-sm font-semibold uppercase tracking-wide transition-all duration-200 ${
-                  added ? 'bg-green-600 text-white' : 'bg-daami-black text-white hover:bg-daami-gold hover:text-daami-black'
+                  added ? 'bg-green-600 text-white' : 'bg-white/5 border border-white/15 text-night-text hover:bg-luxe-gold hover:text-night-base hover:border-transparent'
                 }`}
               >
                 {added ? <><Check size={16} /> Added!</> : <><ShoppingBag size={16} /> Add to Cart</>}
               </button>
               <button onClick={() => setWishlisted(!wishlisted)}
-                className="w-14 h-14 border-2 border-gray-200 flex items-center justify-center hover:border-red-300 hover:text-red-500 transition-colors shrink-0">
+                className="w-14 h-14 border-2 border-white/15 flex items-center justify-center hover:border-red-300 hover:text-red-500 transition-colors shrink-0">
                 <Heart size={18} fill={wishlisted ? '#ef4444' : 'none'} className={wishlisted ? 'text-red-500' : ''} />
               </button>
-              <button className="w-14 h-14 border-2 border-gray-200 flex items-center justify-center hover:border-daami-gold hover:text-daami-gold transition-colors shrink-0">
+              <button className="w-14 h-14 border-2 border-white/15 flex items-center justify-center hover:border-daami-gold hover:text-daami-gold transition-colors shrink-0">
                 <Share2 size={16} />
               </button>
             </div>
 
             <button
               onClick={handleBuyNow}
-              className="block w-full mt-3 btn-gold text-center py-4 text-sm font-semibold uppercase tracking-wide"
+              className="btn-buy block w-full mt-3 text-center py-4 text-sm font-semibold uppercase tracking-wide rounded-xl"
             >
               Buy Now
             </button>
@@ -731,7 +852,7 @@ export default function ProductDetailPage({ params }) {
             )}
 
             {/* ── Trust Signals ── */}
-            <div className="grid grid-cols-3 gap-3 mt-7 pt-7 border-t border-gray-100">
+            <div className="grid grid-cols-3 gap-3 mt-7 pt-7 border-t border-white/10">
               {[
                 { icon: Truck, label: 'Delivery Time', sub: '2 - 4 days' },
                 { icon: Shield, label: 'Secure Pay', sub: 'Multiple methods' },
@@ -739,29 +860,29 @@ export default function ProductDetailPage({ params }) {
               ].map(({ icon: Icon, label, sub }) => (
                 <div key={label} className="flex flex-col items-center text-center gap-1.5">
                   <Icon size={18} className="text-daami-gold" />
-                  <span className="text-xs font-semibold text-daami-black">{label}</span>
-                  <span className="text-[10px] text-daami-gray">{sub}</span>
+                  <span className="text-xs font-semibold text-night-text">{label}</span>
+                  <span className="text-[10px] text-night-muted">{sub}</span>
                 </div>
               ))}
             </div>
 
             {/* ── Product Details ── */}
-            <div className="mt-7 pt-7 border-t border-gray-100 space-y-2">
+            <div className="mt-7 pt-7 border-t border-white/10 space-y-2">
               {product.material && (
                 <div className="flex gap-3 text-sm">
-                  <span className="text-daami-gray w-24 shrink-0">Material</span>
-                  <span className="text-daami-dark-gray">{product.material}</span>
+                  <span className="text-night-muted w-24 shrink-0">Material</span>
+                  <span className="text-night-muted">{product.material}</span>
                 </div>
               )}
               {product.care && (
                 <div className="flex gap-3 text-sm">
-                  <span className="text-daami-gray w-24 shrink-0">Care</span>
-                  <span className="text-daami-dark-gray">{product.care}</span>
+                  <span className="text-night-muted w-24 shrink-0">Care</span>
+                  <span className="text-night-muted">{product.care}</span>
                 </div>
               )}
               <div className="flex gap-3 text-sm">
-                <span className="text-daami-gray w-24 shrink-0">SKU</span>
-                <span className="text-daami-dark-gray">DC-{product.id.slice(-6).toUpperCase()}</span>
+                <span className="text-night-muted w-24 shrink-0">SKU</span>
+                <span className="text-night-muted">DC-{product.id.slice(-6).toUpperCase()}</span>
               </div>
             </div>
           </div>
@@ -771,7 +892,7 @@ export default function ProductDetailPage({ params }) {
         {related.length > 0 && (
           <div className="mt-20">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold text-daami-black">You May Also Like</h2>
+              <h2 className="text-2xl font-bold text-night-text">You May Also Like</h2>
               <Link href={`/category/${product.category}`} className="text-sm text-daami-gold hover:underline">View All</Link>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">

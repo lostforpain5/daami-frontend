@@ -97,7 +97,7 @@ function PaymentSuccessContent() {
 
 export default function PaymentSuccessPage() {
   return (
-    <div className="bg-daami-cream min-h-screen py-10">
+    <div className="min-h-screen py-10">
       <Suspense fallback={
         <div className="page-container py-24 text-center">
           <Loader2 size={40} className="mx-auto text-daami-gold animate-spin" />

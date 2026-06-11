@@ -1,14 +1,8 @@
 import { NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth';
-
-const parse = (p) => ({
-  ...p,
-  images: JSON.parse(p.images || '[]'),
-  sizes: JSON.parse(p.sizes || '[]'),
-  colors: JSON.parse(p.colors || '[]'),
-  tags: JSON.parse(p.tags || '[]'),
-});
+import { getAllProducts, parseProduct as parse } from '@/lib/products';
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -16,17 +10,14 @@ export async function GET(request) {
   const tag = searchParams.get('tag');
   const q = searchParams.get('q');
   const featured = searchParams.get('featured');
+  const limit = parseInt(searchParams.get('limit') || '0', 10);
 
-  const where = {};
-  if (category) where.category = category;
-  if (featured === 'true') where.featured = true;
+  // Single cached Neon read; all filtering happens in memory on the cached list.
+  let products = await getAllProducts();
 
-  let products = await prisma.product.findMany({
-    where,
-    orderBy: { createdAt: 'desc' },
-  });
-
-  if (tag) products = products.filter(p => JSON.parse(p.tags || '[]').includes(tag));
+  if (category) products = products.filter(p => p.category === category);
+  if (featured === 'true') products = products.filter(p => p.featured);
+  if (tag) products = products.filter(p => p.tags.includes(tag));
   if (q) {
     const lower = q.toLowerCase();
     products = products.filter(p =>
@@ -35,8 +26,12 @@ export async function GET(request) {
       p.description.toLowerCase().includes(lower)
     );
   }
+  if (limit > 0) products = products.slice(0, limit);
 
-  return NextResponse.json({ products: products.map(parse) });
+  return NextResponse.json(
+    { products },
+    { headers: { 'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=300' } },
+  );
 }
 
 export async function POST(request) {
@@ -70,6 +65,7 @@ export async function POST(request) {
       },
     });
 
+    revalidateTag('products'); // refresh the cached product list immediately
     return NextResponse.json({ product: parse(product) }, { status: 201 });
   } catch (e) {
     console.error(e);

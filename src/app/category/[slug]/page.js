@@ -61,7 +61,7 @@ export default function CategoryPage({ params }) {
   const categoryDesc = meta?.description || '';
 
   return (
-    <div className="bg-white">
+    <div>
       <div className="relative h-48 md:h-64 bg-daami-black overflow-hidden">
         {categoryImage && (
           <Image

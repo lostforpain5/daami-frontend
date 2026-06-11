@@ -24,11 +24,12 @@ const CATEGORIES = [
 
 export default function SimpleCategories() {
   return (
-    <section className="py-12 md:py-20 bg-white">
+    <section className="py-12 md:py-20 bg-transparent">
       <div className="page-container">
         <div className="text-center mb-8 md:mb-12">
-          <h2 className="section-title">Shop by Category</h2>
-          <p className="section-subtitle mt-2">Tap a collection to start shopping</p>
+          <span className="collection-label">Collections</span>
+          <h2 className="luxe-heading mt-1.5 text-3xl md:text-5xl font-semibold tracking-tight">Shop by Category</h2>
+          <p className="mt-1.5 text-luxe-muted text-base tracking-wide">Tap a collection to start shopping</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
@@ -36,7 +37,7 @@ export default function SimpleCategories() {
             <Link
               key={cat.href}
               href={cat.href}
-              className="group relative block overflow-hidden rounded-lg"
+              className="group relative block overflow-hidden rounded-[24px] shadow-[0_14px_40px_-18px_rgba(74,46,32,0.35)]"
             >
               <div className="relative aspect-[4/5] bg-daami-black">
                 <Image

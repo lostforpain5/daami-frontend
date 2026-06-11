@@ -18,18 +18,19 @@ export default function ProductCard({ product }) {
   const handleQuickAdd = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    const defaultSize = product.sizes[Math.floor(product.sizes.length / 2)] || 'Freesize';
+    const sizes = (product.sizes || []).filter(s => s !== 'XL');
+    const defaultSize = sizes[Math.floor(sizes.length / 2)] || 'Freesize';
     addToCart(product, defaultSize, product.colors[0]);
   };
 
   return (
     <div
-      className="group relative bg-white card-hover"
+      className="group relative card-luxe"
       onMouseEnter={() => { setHovered(true); setImgIdx(1); }}
       onMouseLeave={() => { setHovered(false); setImgIdx(0); }}
     >
       {/* Image Container */}
-      <Link href={`/products/${product.id}`} className="block relative overflow-hidden aspect-[3/4] bg-daami-cream">
+      <Link href={`/products/${product.id}`} className="block relative overflow-hidden aspect-[3/4] bg-night-surface">
         <Image
           src={product.images[imgIdx] || product.images[0]}
           alt={product.name}
@@ -79,35 +80,35 @@ export default function ProductCard({ product }) {
 
       {/* Product Info */}
       <div className="p-3 md:p-4">
-        <Link href={`/products/${product.id}`} className="hover:text-daami-gold transition-colors">
-          <p className="text-[10px] uppercase tracking-widest text-daami-gray mb-1 font-medium">
+        <Link href={`/products/${product.id}`} className="hover:text-luxe-gold transition-colors">
+          <p className="text-[10px] uppercase tracking-widest text-night-muted mb-1 font-medium">
             {product.category.charAt(0).toUpperCase() + product.category.slice(1)}
           </p>
-          <h3 className="text-sm font-semibold text-daami-black leading-snug line-clamp-2">{product.name}</h3>
+          <h3 className="text-sm font-semibold text-night-text leading-snug line-clamp-2">{product.name}</h3>
         </Link>
 
         {/* Rating */}
         <div className="flex items-center gap-1.5 mt-1.5">
           <div className="flex">
             {[1,2,3,4,5].map(s => (
-              <Star key={s} size={10} className={s <= Math.round(product.rating) ? 'text-daami-gold fill-current' : 'text-gray-300'} />
+              <Star key={s} size={10} className={s <= Math.round(product.rating) ? 'text-luxe-gold fill-current' : 'text-white/15'} />
             ))}
           </div>
-          <span className="text-[10px] text-daami-gray">({product.reviews})</span>
+          <span className="text-[10px] text-night-muted">({product.reviews})</span>
         </div>
 
         {/* Price */}
         <div className="flex items-center gap-2 mt-2">
-          <span className="text-sm font-bold text-daami-black">{formatPrice(product.price)}</span>
+          <span className="text-sm font-bold text-night-text">{formatPrice(product.price)}</span>
           {product.originalPrice && (
-            <span className="text-xs text-daami-gray line-through">{formatPrice(product.originalPrice)}</span>
+            <span className="text-xs text-night-muted line-through">{formatPrice(product.originalPrice)}</span>
           )}
         </div>
 
         {/* Buy Now — one click to the product page to complete the order */}
         <Link
           href={`/products/${product.id}`}
-          className="mt-3 w-full flex items-center justify-center gap-2 bg-daami-gold text-daami-black text-xs md:text-sm font-bold uppercase tracking-wide py-2.5 hover:bg-daami-black hover:text-white transition-colors"
+          className="btn-buy mt-3 w-full flex items-center justify-center gap-2 text-xs md:text-sm font-bold uppercase tracking-wide py-2.5 rounded-xl"
         >
           <ShoppingBag size={14} /> Buy Now
         </Link>

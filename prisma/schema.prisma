@@ -41,6 +41,10 @@ model Product {
   orderItems    OrderItem[]
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+
+  @@index([category])
+  @@index([featured])
+  @@index([createdAt])
 }
 
 model Order {
@@ -56,6 +60,10 @@ model Order {
   notes     String?
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model OrderItem {
@@ -69,6 +77,9 @@ model OrderItem {
   quantity  Int
   size      String
   color     String
+
+  @@index([orderId])
+  @@index([productId])
 }
 
 model Payment {

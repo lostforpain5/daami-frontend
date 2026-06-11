@@ -11,11 +11,11 @@ export default function ContactPage() {
   const address = storeAddress || 'New Road, Kathmandu, Nepal';
 
   return (
-    <div className="bg-daami-cream min-h-screen">
+    <div className="min-h-screen">
       {/* Header */}
-      <div className="bg-daami-black text-center py-12 md:py-16 px-4">
-        <h1 className="text-3xl md:text-4xl font-bold text-white">Contact Us</h1>
-        <p className="text-white/60 mt-3 max-w-md mx-auto text-sm">
+      <div className="text-center pt-10 pb-6 md:pt-16 md:pb-10 px-4">
+        <h1 className="text-3xl md:text-4xl font-bold text-daami-black">Contact Us</h1>
+        <p className="text-daami-gray mt-3 max-w-md mx-auto text-sm">
           We&apos;re here to help.
         </p>
       </div>
