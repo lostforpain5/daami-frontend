@@ -179,35 +179,6 @@ export default function Navbar() {
             </div>
           )}
         </div>
-
-        {/* Mobile collection nav — always visible under the logo (replaces hamburger) */}
-        <div className="md:hidden border-t border-white/10 bg-night-base/40">
-          <div className="page-container">
-            <div className="flex items-center justify-center gap-2.5 overflow-x-auto scrollbar-none py-2.5">
-              {NAV_LINKS.filter((link) => link.href.startsWith('/category/')).map((link) => {
-                const active = isActive(link.href);
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] transition-all duration-200 border ${
-                      active
-                        ? 'text-white border-transparent shadow-[0_4px_14px_-3px_rgba(201,160,99,0.45)]'
-                        : 'text-luxe-gold border-luxe-gold/30 hover:border-luxe-gold/60'
-                    }`}
-                    style={{
-                      backgroundImage: active
-                        ? 'linear-gradient(135deg, #9C5F3D, #C9A063)'
-                        : 'linear-gradient(135deg, #1F2024, #17181B)',
-                    }}
-                  >
-                    {link.label}
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        </div>
       </nav>
     </>
   );

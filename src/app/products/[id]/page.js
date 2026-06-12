@@ -100,8 +100,20 @@ function BuyNowModal({ product, selectedSize, selectedColor, quantity, onClose }
   const [screenshotUploading, setScreenshotUploading] = useState(false);
   const screenshotRef = useRef(null);
 
-  const unitPrice = VERSION_PRICE[form.version] ?? product.price;
-  const productTotal = unitPrice * quantity;
+  // Build an order of multiple t-shirts (couple + singles), each with its own colour & qty.
+  const VERSIONS = [
+    { name: 'Couple Tshirt', price: product.price },
+    { name: 'Boy Single Tshirt', price: 850 },
+    { name: 'Girl Single Tshirt', price: 750 },
+  ];
+  const priceOf = (v) => VERSIONS.find((x) => x.name === v)?.price ?? product.price;
+  const [lines, setLines] = useState([{ version: 'Couple Tshirt', qty: quantity || 1 }]);
+  const setLine = (idx, key, val) => setLines((ls) => ls.map((l, i) => (i === idx ? { ...l, [key]: val } : l)));
+  const bumpQty = (idx, d) => setLines((ls) => ls.map((l, i) => (i === idx ? { ...l, qty: Math.max(1, l.qty + d) } : l)));
+  const addLine = () => setLines((ls) => [...ls, { version: 'Boy Single Tshirt', qty: 1 }]);
+  const removeLine = (idx) => setLines((ls) => ls.filter((_, i) => i !== idx));
+  const totalQty = lines.reduce((s, l) => s + l.qty, 0);
+  const productTotal = lines.reduce((s, l) => s + priceOf(l.version) * l.qty, 0);
   const deliveryCharge = form.location ? getDeliveryCharge(form.location, deliveryType) : 0;
   const grandTotal = productTotal + deliveryCharge;
 
@@ -154,7 +166,7 @@ function BuyNowModal({ product, selectedSize, selectedColor, quantity, onClose }
 
   const validateDetails = () => {
     const e = {};
-    if (!form.version) e.version = 'Please choose Boy, Girl or Couple Tshirt';
+    if (lines.length === 0 || totalQty < 1) e.items = 'Add at least one t-shirt';
     if (!form.name.trim()) e.name = 'Name is required';
     if (!form.phone.trim()) e.phone = 'Phone is required';
     if (!form.location) e.location = 'Please select your location';
@@ -181,17 +193,17 @@ function BuyNowModal({ product, selectedSize, selectedColor, quantity, onClose }
         location: form.location,
         deliveryType: deliveryType === 'home' ? 'Home Delivery' : 'Courier Branch',
         address: form.address,
-        version: form.version,
       };
+      const itemsSummary = lines.map((l) => `${l.version} ×${l.qty}`).join(', ');
 
       const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: [{ productId: product.id, name: `${product.name} — ${form.version}`, price: unitPrice, quantity, size: selectedSize || 'Freesize', color: form.color }],
+          items: lines.map((l) => ({ productId: product.id, name: `${product.name} — ${l.version}`, price: priceOf(l.version), quantity: l.qty, size: selectedSize || 'Freesize', color: '' })),
           shipping: deliveryCharge,
           address: addressData,
-          notes: `Version: ${form.version} | ${paymentMethod === 'online' ? 'Online Payment (QR)' : 'Cash On Delivery'} | Screenshot: ${screenshot}`,
+          notes: `Items: ${itemsSummary} | ${paymentMethod === 'online' ? 'Online Payment (QR)' : 'Cash On Delivery'} | Screenshot: ${screenshot}`,
           paymentMethod,
         }),
       });
@@ -210,7 +222,7 @@ function BuyNowModal({ product, selectedSize, selectedColor, quantity, onClose }
       <div className="flex-1 min-w-0">
         <p className="text-xs font-semibold text-night-text truncate">{product.name}</p>
         <p className="text-[11px] text-night-muted mt-0.5">
-          {selectedSize && `Size: ${selectedSize}`}{selectedColor && ` · ${selectedColor}`}{quantity > 1 && ` · Qty: ${quantity}`}
+          {selectedSize ? `Size: ${selectedSize} · ` : ''}{lines.map((l) => `${l.version.replace(' Tshirt', '')} ×${l.qty}`).join(', ')}
         </p>
       </div>
       <div className="text-right shrink-0">
@@ -224,7 +236,7 @@ function BuyNowModal({ product, selectedSize, selectedColor, quantity, onClose }
   const PriceBox = () => (
     <div className="bg-[#1C1D21] border border-white/10 px-4 py-3 space-y-1.5 text-xs rounded-lg">
       <div className="flex justify-between text-night-muted">
-        <span>Product × {quantity}</span>
+        <span>Product × {totalQty}</span>
         <span>{formatPrice(productTotal)}</span>
       </div>
       <div className="flex justify-between text-night-muted">
@@ -286,29 +298,23 @@ function BuyNowModal({ product, selectedSize, selectedColor, quantity, onClose }
                 <p className="text-xs font-bold uppercase tracking-wider text-white">Freesize</p>
               </div>
               <div className="px-4 py-3">
-                {form.version === 'Girl Single Tshirt' ? (
-                  <p className="text-sm font-semibold text-night-text leading-snug">
-                    Stretchable t-shirt — <span className="text-luxe-gold">any height &amp; weight</span> can wear it perfectly. One size fits all! 💛
-                  </p>
-                ) : (
-                  <div className="flex items-stretch gap-3">
-                    <div className="flex-1 flex items-center gap-2">
-                      <span className="text-xl">📐</span>
-                      <div>
-                        <p className="text-[10px] uppercase tracking-wide text-night-muted font-semibold">Height</p>
-                        <p className="text-sm font-bold text-night-text">5ft – 5ft 8in</p>
-                      </div>
-                    </div>
-                    <div className="w-px bg-white/10" />
-                    <div className="flex-1 flex items-center gap-2">
-                      <span className="text-xl">⚖️</span>
-                      <div>
-                        <p className="text-[10px] uppercase tracking-wide text-night-muted font-semibold">Weight</p>
-                        <p className="text-sm font-bold text-night-text">50 – 85 kg</p>
-                      </div>
+                <div className="flex items-stretch gap-3">
+                  <div className="flex-1 flex items-center gap-2">
+                    <span className="text-xl">📐</span>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wide text-night-muted font-semibold">Height</p>
+                      <p className="text-sm font-bold text-night-text">5ft – 5ft 8in</p>
                     </div>
                   </div>
-                )}
+                  <div className="w-px bg-white/10" />
+                  <div className="flex-1 flex items-center gap-2">
+                    <span className="text-xl">⚖️</span>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wide text-night-muted font-semibold">Weight</p>
+                      <p className="text-sm font-bold text-night-text">50 – 85 kg</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -316,52 +322,49 @@ function BuyNowModal({ product, selectedSize, selectedColor, quantity, onClose }
           {/* ── Step 1: Delivery Details ── */}
           {step === 'details' && (
             <div className="space-y-4">
-              {/* Choose which version to order */}
+              {/* Build your order — couple tee + single tees, any colours & quantities */}
               <div>
-                <label className="block text-xs font-semibold text-night-text mb-1.5">Choose Your T-Shirt *</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {TSHIRT_VERSIONS.map(v => (
-                    <button
-                      key={v}
-                      type="button"
-                      onClick={() => { setForm(f => ({ ...f, version: v })); if (errors.version) setErrors(p => ({ ...p, version: '' })); }}
-                      className={`py-2.5 px-1 text-xs font-bold border-2 rounded-lg transition-all text-center leading-tight ${
-                        form.version === v
-                          ? 'border-transparent text-white shadow-md scale-[1.03] bg-gradient-to-br from-[#9C5F3D] to-[#C9A063]'
-                          : 'border-white/12 bg-[#1C1D21] text-night-text hover:border-luxe-gold/60'
-                      }`}
-                    >
-                      {v}
-                    </button>
+                <label className="block text-xs font-semibold text-night-text mb-1.5">Your T-Shirts *</label>
+                <div className="space-y-3">
+                  {lines.map((l, idx) => (
+                    <div key={idx} className="rounded-lg border border-white/10 bg-[#1C1D21] p-3 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold uppercase tracking-wide text-night-muted">Item {idx + 1}</span>
+                        {lines.length > 1 && (
+                          <button type="button" onClick={() => removeLine(idx)} className="text-red-400 text-[11px] font-semibold hover:underline">Remove</button>
+                        )}
+                      </div>
+                      {/* Version */}
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {VERSIONS.map((v) => (
+                          <button key={v.name} type="button" onClick={() => setLine(idx, 'version', v.name)}
+                            className={`py-2 px-1 rounded-lg border text-[11px] font-bold leading-tight text-center transition-all ${
+                              l.version === v.name
+                                ? 'border-transparent text-white bg-gradient-to-br from-[#9C5F3D] to-[#C9A063]'
+                                : 'border-white/12 text-night-text hover:border-luxe-gold/60'
+                            }`}>
+                            {v.name.replace(' Tshirt', '')}
+                            <span className="block font-normal text-[10px] opacity-80 mt-0.5">{formatPrice(v.price)}</span>
+                          </button>
+                        ))}
+                      </div>
+                      {/* Quantity */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-night-muted">Quantity</span>
+                        <div className="inline-flex items-center rounded-lg border border-white/12 overflow-hidden">
+                          <button type="button" aria-label="Decrease" onClick={() => bumpQty(idx, -1)} className="w-9 h-9 flex items-center justify-center text-night-text hover:bg-white/5"><Minus size={14} /></button>
+                          <span className="w-9 text-center text-sm font-bold text-night-text">{l.qty}</span>
+                          <button type="button" aria-label="Increase" onClick={() => bumpQty(idx, 1)} className="w-9 h-9 flex items-center justify-center text-night-text hover:bg-white/5"><Plus size={14} /></button>
+                        </div>
+                      </div>
+                    </div>
                   ))}
                 </div>
-                {errors.version && <p className="flex items-center gap-1 text-red-500 text-xs mt-1"><AlertCircle size={11} /> {errors.version}</p>}
-              </div>
-
-              {/* Color — dot selection */}
-              <div>
-                <label className="block text-xs font-semibold text-night-text mb-1.5">Color *</label>
-                <div className="flex items-center gap-5">
-                  {[{ name: 'Black', hex: '#111111' }, { name: 'White', hex: '#FFFFFF' }].map(c => {
-                    const selected = form.color === c.name;
-                    return (
-                      <button
-                        key={c.name}
-                        type="button"
-                        onClick={() => setForm(f => ({ ...f, color: c.name }))}
-                        className="flex items-center gap-2"
-                      >
-                        <span
-                          className={`w-7 h-7 rounded-full flex items-center justify-center border transition-all ${selected ? 'border-luxe-gold ring-2 ring-luxe-gold/40' : 'border-white/25'}`}
-                          style={{ backgroundColor: c.hex }}
-                        >
-                          {selected && <Check size={14} className={c.name === 'White' ? 'text-luxe-brown' : 'text-white'} />}
-                        </span>
-                        <span className={`text-xs font-semibold ${selected ? 'text-night-text' : 'text-night-muted'}`}>{c.name}</span>
-                      </button>
-                    );
-                  })}
-                </div>
+                <button type="button" onClick={addLine}
+                  className="mt-2.5 w-full flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-luxe-gold/40 text-luxe-gold text-xs font-semibold py-2.5 hover:bg-luxe-gold/10 transition-colors">
+                  <Plus size={14} /> Add another t-shirt
+                </button>
+                <p className="text-[11px] text-night-muted mt-2">Total: {totalQty} item{totalQty !== 1 ? 's' : ''}</p>
               </div>
 
               <Field name="name" label="Full Name *" placeholder="Your full name" value={form.name} onChange={handleChange} error={errors.name} />

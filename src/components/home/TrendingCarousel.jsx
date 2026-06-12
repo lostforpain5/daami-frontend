@@ -2,14 +2,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Star, ShoppingBag } from 'lucide-react';
+import { Star, ShoppingBag, RefreshCw } from 'lucide-react';
 import { formatPrice } from '@/data/products';
 
-const DRAG_CLICK_THRESHOLD = 8; // px before a press counts as a drag (suppresses click)
-const SNAP_FRACTION = 0.18;     // how far you must drag (in slide-steps) to change slide
-const WINDOW = 2;               // render only the active slide ±2 for performance
+const DRAG_CLICK_THRESHOLD = 8;
+const SNAP_FRACTION = 0.18;
+const WINDOW = 2;
 
-// Normalize a DB/static product so arrays are real arrays (shape the rest of the app expects).
 const parse = (p) => ({
   ...p,
   images: Array.isArray(p.images) ? p.images : JSON.parse(p.images || '[]'),
@@ -21,13 +20,23 @@ const parse = (p) => ({
 // Trending = exactly the products the admin tags "trending" (managed in /admin/trending).
 const selectTrending = (list) => list.filter((p) => p.tags.includes('trending')).slice(0, 12);
 
-// ─── Outer: loads products, then mounts the carousel with a stable item count ──
+function SectionHeading() {
+  return (
+    <div className="text-center mb-4 md:mb-10">
+      <span className="collection-label hidden md:inline-block">Featured Collection</span>
+      <h2 className="font-sans mt-0 md:mt-2 text-2xl md:text-3xl font-semibold text-night-text">Trending Couple T-Shirts</h2>
+      <p className="mt-1.5 hidden md:block text-luxe-muted text-base tracking-wide">Swipe or drag to explore the collection</p>
+    </div>
+  );
+}
+
+// ─── Outer: loads products, then mounts the carousel ───────────────────────────
 export default function TrendingCarousel({ initialItems }) {
   const [items, setItems] = useState(initialItems || []);
   const [loading, setLoading] = useState(!initialItems);
 
   useEffect(() => {
-    if (initialItems) return; // server already provided the data
+    if (initialItems) return;
     fetch('/api/products')
       .then((r) => r.json())
       .then((data) => setItems(selectTrending((data.products || []).map(parse))))
@@ -37,7 +46,7 @@ export default function TrendingCarousel({ initialItems }) {
 
   if (loading) {
     return (
-      <section className="bg-transparent py-12 md:py-16">
+      <section className="bg-transparent py-3 md:py-16">
         <div className="page-container">
           <SectionHeading />
           <div className="flex items-center justify-center gap-4">
@@ -54,37 +63,27 @@ export default function TrendingCarousel({ initialItems }) {
   return <Carousel items={items} />;
 }
 
-function SectionHeading() {
-  return (
-    <div className="text-center mb-2 md:mb-10">
-      <span className="collection-label hidden md:inline-block">Featured Collection</span>
-      <h2 className="luxe-heading mt-0 md:mt-2.5 text-2xl md:text-5xl font-semibold tracking-tight">Trending Couple T-Shirts</h2>
-      <p className="mt-1.5 hidden md:block text-luxe-muted text-base tracking-wide">Swipe or drag to explore the collection</p>
-    </div>
-  );
-}
-
 // ─── Inner: PlayStation Store-style coverflow (manual only — no autoplay/arrows) ──
 function Carousel({ items }) {
   const n = items.length;
   const [active, setActive] = useState(0);
-  const [drag, setDrag] = useState(0);            // fractional slide offset while dragging
+  const [drag, setDrag] = useState(0);
   const [dims, setDims] = useState({ slideW: 0, boxH: 0, stepPx: 0 });
   const [detailVisible, setDetailVisible] = useState(true);
+  const [showBack, setShowBack] = useState(false); // flip front/back on the active shirt
 
   const viewportRef = useRef(null);
   const ptr = useRef({ active: false, startX: 0, moved: 0, id: null });
 
-  // Measure responsive sizes: center image width, its height (4:5), and the side step.
   const measure = useCallback(() => {
     const el = viewportRef.current;
     if (!el) return;
     const w = el.clientWidth;
     const frac = w < 640 ? 0.74 : w < 1024 ? 0.64 : 0.56;
     const slideW = Math.round(w * frac);
-    const ratio = w < 640 ? 1.08 : 1.25;          // shorter on mobile so the Buy Now button sits higher
+    const ratio = w < 640 ? 1.25 : 1.32;          // tall portrait image
     const boxH = Math.round(slideW * ratio);
-    const stepPx = Math.round(slideW * 0.6);      // sides sit close, tucked behind center
+    const stepPx = Math.round(slideW * 0.6);
     setDims({ slideW, boxH, stepPx });
   }, []);
 
@@ -97,8 +96,8 @@ function Carousel({ items }) {
     return () => ro.disconnect();
   }, [measure]);
 
-  // Fade the details (opacity only — never moves) when the active product changes.
   useEffect(() => {
+    setShowBack(false); // each new shirt starts on its front image
     setDetailVisible(false);
     const id = requestAnimationFrame(() => setDetailVisible(true));
     return () => cancelAnimationFrame(id);
@@ -107,7 +106,6 @@ function Carousel({ items }) {
   const goNext = useCallback(() => setActive((a) => (a + 1) % n), [n]);
   const goPrev = useCallback(() => setActive((a) => (a - 1 + n) % n), [n]);
 
-  // Shortest signed distance from active on the ring → enables seamless infinite loop.
   const half = Math.floor(n / 2);
   const circDist = (i) => {
     let d = (((i - active) % n) + n) % n;
@@ -115,7 +113,6 @@ function Carousel({ items }) {
     return d;
   };
 
-  // ── Unified pointer drag (mouse + touch) ──
   const onPointerDown = (e) => {
     if (e.button != null && e.button !== 0) return;
     ptr.current = { active: true, startX: e.clientX, moved: 0, id: e.pointerId };
@@ -144,13 +141,15 @@ function Carousel({ items }) {
     else if (e.key === 'ArrowLeft') { e.preventDefault(); goPrev(); }
   };
 
-  // Click handling per slide: drag → cancel; side image → select; center → open product page.
   const onSlideClick = (e, i) => {
     if (ptr.current.moved > DRAG_CLICK_THRESHOLD) { e.preventDefault(); return; }
-    if (i !== active) { e.preventDefault(); setActive(i); }
+    if (i !== active) { e.preventDefault(); setActive(i); return; }
+    // Centre slide: tap flips front/back when the shirt has a second image.
+    if (items[i].images.length > 1) { e.preventDefault(); setShowBack((b) => !b); }
   };
 
   const dragging = ptr.current.active;
+  const realIndex = ((active % n) + n) % n;
   const product = items[active];
   const discount = product.originalPrice
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
@@ -178,8 +177,8 @@ function Carousel({ items }) {
         >
           {items.map((p, i) => {
             const d = circDist(i);
-            if (Math.abs(d) > WINDOW) return null;     // only render the visible window
-            const pos = d + drag;                      // continuous position incl. live drag
+            if (Math.abs(d) > WINDOW) return null;
+            const pos = d + drag;
             const ap = Math.abs(pos);
             const isCenter = ap < 0.5;
             const scale = Math.max(0.7, 1 - 0.16 * ap);
@@ -214,66 +213,63 @@ function Carousel({ items }) {
                   }`}
                 >
                   <Image
-                    src={p.images[0]}
+                    src={isCenter && showBack && p.images[1] ? p.images[1] : p.images[0]}
                     alt={p.name}
                     fill
                     priority={isCenter}
                     sizes="(max-width: 640px) 74vw, (max-width: 1024px) 64vw, 56vw"
                     className={`object-cover transition-transform duration-700 ${isCenter ? 'scale-[1.03] group-hover:scale-105' : ''}`}
                   />
+                  {isCenter && p.images.length > 1 && (
+                    <span className="absolute bottom-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 bg-night-base/80 text-night-text text-[11px] font-semibold px-3 py-1.5 rounded-full backdrop-blur-sm border border-white/10">
+                      <RefreshCw size={12} /> {showBack ? 'Back' : 'Front'} · tap to flip
+                    </span>
+                  )}
                 </Link>
               </div>
             );
           })}
         </div>
 
-        {/* Pagination dots — directly below the image */}
-        <div className="flex items-center justify-center gap-2 mt-3 md:mt-6" role="tablist" aria-label="Choose product">
+        {/* Pagination dots */}
+        <div className="flex items-center justify-center gap-2 mt-2 md:mt-6" role="tablist" aria-label="Choose product">
           {items.map((_, i) => (
             <button
               key={i}
               onClick={() => setActive(i)}
               role="tab"
-              aria-selected={i === active}
+              aria-selected={i === realIndex}
               aria-label={`Go to product ${i + 1}`}
               className={`h-2 rounded-full transition-all duration-300 ${
-                i === active ? 'w-8 bg-luxe-gold' : 'w-2 bg-white/25 hover:bg-luxe-gold/60'
+                i === realIndex ? 'w-8 bg-luxe-gold' : 'w-2 bg-white/25 hover:bg-luxe-gold/60'
               }`}
             />
           ))}
         </div>
 
         {/* Fixed details — never moves; only content swaps (opacity fade) on slide change */}
-        <div className="mt-3 md:mt-8 mx-auto max-w-xl text-center min-h-[150px] md:min-h-[230px]">
+        <div className="mt-1.5 md:mt-8 mx-auto max-w-xl text-center min-h-[120px] md:min-h-[230px]">
           <div className={`transition-opacity duration-300 ${detailVisible ? 'opacity-100' : 'opacity-0'}`}>
-            {/* Category — hidden on mobile to keep Buy Now above the fold */}
             <p className="hidden md:block collection-label">
               {product.category.charAt(0).toUpperCase() + product.category.slice(1)}
             </p>
             <Link href={`/products/${product.id}`} className="block transition-colors hover:text-luxe-gold">
-              {/* Fixed height (reserves 2 lines) so the button never shifts; long names truncate */}
-              <div className="mt-0 md:mt-2 flex items-center justify-center h-[52px] md:h-[96px]">
-                <h3 className="luxe-heading text-[24px] md:text-[42px] font-semibold leading-tight line-clamp-2">
+              <div className="mt-0 md:mt-2 flex items-center justify-center h-[40px] md:h-[76px]">
+                <h3 className="font-sans text-lg md:text-2xl font-semibold text-night-text leading-tight line-clamp-2">
                   {product.name}
                 </h3>
               </div>
             </Link>
 
-            {/* Rating — hidden on mobile to keep Buy Now above the fold */}
             <div className="hidden md:flex items-center justify-center gap-1.5 mt-3">
               <div className="flex">
                 {[1, 2, 3, 4, 5].map((s) => (
-                  <Star
-                    key={s}
-                    size={14}
-                    className={s <= Math.round(product.rating) ? 'text-luxe-gold fill-current' : 'text-white/20'}
-                  />
+                  <Star key={s} size={14} className={s <= Math.round(product.rating) ? 'text-luxe-gold fill-current' : 'text-white/20'} />
                 ))}
               </div>
               <span className="text-xs text-luxe-muted">({product.reviews})</span>
             </div>
 
-            {/* Price */}
             <div className="flex items-center justify-center gap-2.5 mt-2 md:mt-3.5">
               <span className="text-xl md:text-2xl font-bold text-night-text">{formatPrice(product.price)}</span>
               {product.originalPrice && (
@@ -284,10 +280,9 @@ function Carousel({ items }) {
               )}
             </div>
 
-            {/* Place Order — opens the delivery details panel directly */}
             <Link
               href={`/products/${product.id}?order=1`}
-              className="btn-luxe mt-3 md:mt-6 px-10 text-sm uppercase"
+              className="btn-luxe mt-2.5 md:mt-6 px-10 text-sm uppercase"
             >
               <ShoppingBag size={16} /> Place Order
             </Link>

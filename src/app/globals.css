@@ -115,6 +115,10 @@
   }
 }
 
+/* Hide scrollbar but keep scrolling (Netflix-style rows) */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
