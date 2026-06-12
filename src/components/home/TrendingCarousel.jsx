@@ -163,7 +163,7 @@ function Carousel({ items }) {
         {/* Stage */}
         <div
           ref={viewportRef}
-          className="relative mx-auto w-full max-w-4xl overflow-hidden select-none focus:outline-none [&_img]:pointer-events-none"
+          className="relative isolate mx-auto w-full max-w-4xl overflow-hidden select-none focus:outline-none [&_img]:pointer-events-none"
           style={{ height: dims.boxH || undefined, touchAction: 'pan-y' }}
           tabIndex={0}
           role="group"

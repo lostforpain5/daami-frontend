@@ -13,7 +13,7 @@ const parse = (p) => ({
 });
 
 const isTrending = (p) => p.tags.includes('trending');
-const EMPTY = { image: '', name: '', category: '', price: '', originalPrice: '' };
+const EMPTY = { front: '', back: '', name: '', category: '', price: '', originalPrice: '' };
 
 export default function AdminTrendingPage() {
   const { authFetch } = useAuth();
@@ -25,10 +25,11 @@ export default function AdminTrendingPage() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [form, setForm] = useState(EMPTY);
-  const [uploading, setUploading] = useState(false);
+  const [uploading, setUploading] = useState(null); // 'front' | 'back' | null
   const [saving, setSaving] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
-  const fileRef = useRef(null);
+  const frontRef = useRef(null);
+  const backRef = useRef(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -66,10 +67,10 @@ export default function AdminTrendingPage() {
   };
 
   // Upload a slide image.
-  const handleUpload = async (e) => {
+  const handleUpload = (slot) => async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setUploading(true);
+    setUploading(slot);
     try {
       const fd = new FormData();
       fd.append('file', file);
@@ -80,19 +81,19 @@ export default function AdminTrendingPage() {
       });
       const data = await res.json();
       if (!res.ok) { toast.error(data.error || 'Upload failed'); return; }
-      setForm((f) => ({ ...f, image: data.url }));
-      toast.success('Image uploaded');
+      setForm((f) => ({ ...f, [slot]: data.url }));
+      toast.success(`${slot === 'front' ? 'Front' : 'Back'} photo uploaded`);
     } catch {
       toast.error('Upload failed');
     } finally {
-      setUploading(false);
+      setUploading(null);
       e.target.value = '';
     }
   };
 
   // Create a new slide (a product, auto-tagged "trending").
   const handleSave = async () => {
-    if (!form.image) return toast.error('Please upload an image');
+    if (!form.front) return toast.error('Please upload the front photo');
     if (!form.name.trim()) return toast.error('Name is required');
     if (!form.price) return toast.error('Price is required');
     const category = form.category || categories[0]?.slug;
@@ -106,9 +107,9 @@ export default function AdminTrendingPage() {
         price: Number(form.price),
         originalPrice: form.originalPrice ? Number(form.originalPrice) : null,
         description: form.name.trim(),
-        images: [form.image],
+        images: [form.front, form.back].filter(Boolean), // front first, back second
         sizes: ['Freesize'],
-        colors: ['Black', 'White'],
+        colors: [],
         tags: ['trending'],
         inStock: true,
       };
@@ -236,27 +237,33 @@ export default function AdminTrendingPage() {
               <button onClick={() => setModalOpen(false)} className="text-daami-gray hover:text-daami-black"><X size={20} /></button>
             </div>
             <div className="p-5 space-y-4">
-              {/* Image */}
+              {/* Photos — front & back */}
               <div>
-                <label className="block text-xs font-semibold text-daami-black mb-1.5">Photo *</label>
-                <input ref={fileRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
-                {form.image ? (
-                  <div className="relative aspect-[3/4] w-40 rounded-lg overflow-hidden border border-gray-200">
-                    <Image src={form.image} alt="preview" fill className="object-cover" sizes="160px" />
-                    <button onClick={() => fileRef.current?.click()} className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 text-white text-xs font-semibold flex items-center justify-center transition-opacity">
-                      Change
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => fileRef.current?.click()}
-                    disabled={uploading}
-                    className="w-40 aspect-[3/4] rounded-lg border-2 border-dashed border-gray-300 hover:border-daami-gold flex flex-col items-center justify-center gap-2 text-daami-gray disabled:opacity-60"
-                  >
-                    {uploading ? <Loader2 size={22} className="animate-spin text-daami-gold" /> : <Upload size={22} />}
-                    <span className="text-xs font-medium">{uploading ? 'Uploading...' : 'Upload photo'}</span>
-                  </button>
-                )}
+                <label className="block text-xs font-semibold text-daami-black mb-1.5">Photos — front &amp; back *</label>
+                <div className="flex gap-3">
+                  {[
+                    { slot: 'front', ref: frontRef, label: 'Front *' },
+                    { slot: 'back', ref: backRef, label: 'Back' },
+                  ].map(({ slot, ref, label }) => (
+                    <div key={slot}>
+                      <input ref={ref} type="file" accept="image/*" onChange={handleUpload(slot)} className="hidden" />
+                      {form[slot] ? (
+                        <div className="relative aspect-[3/4] w-32 rounded-lg overflow-hidden border border-gray-200">
+                          <Image src={form[slot]} alt={slot} fill className="object-cover" sizes="128px" />
+                          <button onClick={() => ref.current?.click()} className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 text-white text-[11px] font-semibold flex items-center justify-center transition-opacity">Change</button>
+                          <span className="absolute bottom-1 left-1 bg-black/60 text-white text-[9px] font-bold uppercase px-1.5 py-0.5 rounded">{slot}</span>
+                        </div>
+                      ) : (
+                        <button onClick={() => ref.current?.click()} disabled={uploading === slot}
+                          className="w-32 aspect-[3/4] rounded-lg border-2 border-dashed border-gray-300 hover:border-daami-gold flex flex-col items-center justify-center gap-1.5 text-daami-gray disabled:opacity-60">
+                          {uploading === slot ? <Loader2 size={20} className="animate-spin text-daami-gold" /> : <Upload size={20} />}
+                          <span className="text-[11px] font-medium">{label}</span>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[11px] text-daami-gray mt-1.5">Front shows first; on the carousel, tapping the shirt flips to the back.</p>
               </div>
 
               <div>
