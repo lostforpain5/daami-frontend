@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
+import { writeFile, mkdir } from 'fs/promises';
+import path from 'path';
 
 export async function POST(request) {
   try {
@@ -12,12 +14,21 @@ export async function POST(request) {
     if (!allowed.includes(ext))
       return NextResponse.json({ error: 'Only image files allowed' }, { status: 400 });
 
-    const filename = `screenshots/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const blob = await put(filename, file, { access: 'public' });
+    const name = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
-    return NextResponse.json({ url: blob.url });
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      const blob = await put(`screenshots/${name}`, file, { access: 'public' });
+      return NextResponse.json({ url: blob.url });
+    }
+
+    // Local dev fallback: save into /public/uploads.
+    const bytes = Buffer.from(await file.arrayBuffer());
+    const dir = path.join(process.cwd(), 'public', 'uploads');
+    await mkdir(dir, { recursive: true });
+    await writeFile(path.join(dir, name), bytes);
+    return NextResponse.json({ url: `/uploads/${name}` });
   } catch (e) {
-    console.error(e);
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+    console.error('Screenshot upload error:', e);
+    return NextResponse.json({ error: e?.message || 'Upload failed' }, { status: 500 });
   }
 }

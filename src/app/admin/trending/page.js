@@ -79,6 +79,7 @@ export default function AdminTrendingPage() {
         headers: { Authorization: `Bearer ${localStorage.getItem('daami_token')}` },
         body: fd,
       });
+      if (res.status === 403) { toast.error('Your admin session expired — please log out and log in again.'); return; }
       const data = await res.json();
       if (!res.ok) { toast.error(data.error || 'Upload failed'); return; }
       setForm((f) => ({ ...f, [slot]: data.url }));

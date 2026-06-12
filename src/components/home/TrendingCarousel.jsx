@@ -103,6 +103,13 @@ function Carousel({ items }) {
     return () => cancelAnimationFrame(id);
   }, [active]);
 
+  // Auto-alternate front/back on the active shirt (only when it has a back image).
+  useEffect(() => {
+    if (!(items[active]?.images?.length > 1)) return;
+    const id = setInterval(() => setShowBack((b) => !b), 2800);
+    return () => clearInterval(id);
+  }, [active, items]);
+
   const goNext = useCallback(() => setActive((a) => (a + 1) % n), [n]);
   const goPrev = useCallback(() => setActive((a) => (a - 1 + n) % n), [n]);
 
@@ -143,9 +150,8 @@ function Carousel({ items }) {
 
   const onSlideClick = (e, i) => {
     if (ptr.current.moved > DRAG_CLICK_THRESHOLD) { e.preventDefault(); return; }
-    if (i !== active) { e.preventDefault(); setActive(i); return; }
-    // Centre slide: tap flips front/back when the shirt has a second image.
-    if (items[i].images.length > 1) { e.preventDefault(); setShowBack((b) => !b); }
+    if (i !== active) { e.preventDefault(); setActive(i); }
+    // Centre slide: let the click open the product page (front/back auto-alternates).
   };
 
   const dragging = ptr.current.active;
@@ -212,17 +218,28 @@ function Carousel({ items }) {
                     isCenter ? 'ring-1 ring-luxe-gold/40 shadow-[0_34px_70px_-24px_rgba(0,0,0,0.8)]' : 'shadow-[0_18px_40px_-22px_rgba(0,0,0,0.7)]'
                   }`}
                 >
+                  {/* Front image */}
                   <Image
-                    src={isCenter && showBack && p.images[1] ? p.images[1] : p.images[0]}
+                    src={p.images[0]}
                     alt={p.name}
                     fill
                     priority={isCenter}
                     sizes="(max-width: 640px) 74vw, (max-width: 1024px) 64vw, 56vw"
                     className={`object-cover transition-transform duration-700 ${isCenter ? 'scale-[1.03] group-hover:scale-105' : ''}`}
                   />
+                  {/* Back image — auto cross-fades on the active shirt */}
+                  {isCenter && p.images[1] && (
+                    <Image
+                      src={p.images[1]}
+                      alt={`${p.name} — back`}
+                      fill
+                      sizes="(max-width: 640px) 74vw, (max-width: 1024px) 64vw, 56vw"
+                      className={`object-cover scale-[1.03] group-hover:scale-105 transition-all duration-700 ${showBack ? 'opacity-100' : 'opacity-0'}`}
+                    />
+                  )}
                   {isCenter && p.images.length > 1 && (
-                    <span className="absolute bottom-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 bg-night-base/80 text-night-text text-[11px] font-semibold px-3 py-1.5 rounded-full backdrop-blur-sm border border-white/10">
-                      <RefreshCw size={12} /> {showBack ? 'Back' : 'Front'} · tap to flip
+                    <span className="absolute bottom-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 bg-night-base/75 text-night-text text-[11px] font-semibold px-3 py-1.5 rounded-full backdrop-blur-sm border border-white/10 pointer-events-none">
+                      <RefreshCw size={12} className={showBack ? 'rotate-180 transition-transform duration-500' : 'transition-transform duration-500'} /> {showBack ? 'Back' : 'Front'}
                     </span>
                   )}
                 </Link>

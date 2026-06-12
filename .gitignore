@@ -31,3 +31,6 @@ yarn-error.log*
 .DS_Store
 *.pem
 .vercel
+
+# Local dev image uploads (production uses Vercel Blob)
+/public/uploads
