@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Star, ShoppingBag, RefreshCw } from 'lucide-react';
+import { Star, ShoppingBag } from 'lucide-react';
 import { formatPrice } from '@/data/products';
 
 const DRAG_CLICK_THRESHOLD = 8;
@@ -106,7 +106,7 @@ function Carousel({ items }) {
   // Auto-alternate front/back on the active shirt (only when it has a back image).
   useEffect(() => {
     if (!(items[active]?.images?.length > 1)) return;
-    const id = setInterval(() => setShowBack((b) => !b), 2800);
+    const id = setInterval(() => setShowBack((b) => !b), 1800);
     return () => clearInterval(id);
   }, [active, items]);
 
@@ -234,13 +234,8 @@ function Carousel({ items }) {
                       alt={`${p.name} — back`}
                       fill
                       sizes="(max-width: 640px) 74vw, (max-width: 1024px) 64vw, 56vw"
-                      className={`object-cover scale-[1.03] group-hover:scale-105 transition-all duration-700 ${showBack ? 'opacity-100' : 'opacity-0'}`}
+                      className={`object-cover scale-[1.03] group-hover:scale-105 transition-opacity duration-500 ${showBack ? 'opacity-100' : 'opacity-0'}`}
                     />
-                  )}
-                  {isCenter && p.images.length > 1 && (
-                    <span className="absolute bottom-3 left-1/2 -translate-x-1/2 inline-flex items-center gap-1.5 bg-night-base/75 text-night-text text-[11px] font-semibold px-3 py-1.5 rounded-full backdrop-blur-sm border border-white/10 pointer-events-none">
-                      <RefreshCw size={12} className={showBack ? 'rotate-180 transition-transform duration-500' : 'transition-transform duration-500'} /> {showBack ? 'Back' : 'Front'}
-                    </span>
                   )}
                 </Link>
               </div>
